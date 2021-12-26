@@ -46,13 +46,14 @@ def test_get_changed_files_both_source_and_test_files(
         "test_foo.py",
         "test_bar.py",
         "test_baz.py",
+        "conftest.py",
     )
     with mock.patch("dgtest.utils.git.Repo") as mock_repo:
         mock_repo().git.diff.return_value = "\n".join(file for file in files)
         changed_source_files, changed_test_files = get_changed_files("origin/master")
 
     assert len(changed_source_files) == 3
-    assert len(changed_test_files) == 3
+    assert len(changed_test_files) == 4
 
 
 def test_get_changed_files_excludes_non_py_files(

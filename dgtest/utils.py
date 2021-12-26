@@ -37,9 +37,11 @@ def _filter_source_files(files: List[str]) -> List[str]:
     source_files = []
     for file in files:
         path = pathlib.Path(file)
-        if not _is_existing_py_file(path) or path.stem.startswith("test_"):
+        if not _is_existing_py_file(path):
             continue
-        source_files.append(str(path))
+        stem = path.stem
+        if not (stem == "conftest" or path.stem.startswith("test_")):
+            source_files.append(str(path))
     return source_files
 
 
@@ -47,9 +49,11 @@ def _filter_test_files(files: List[str]) -> List[str]:
     test_files = []
     for file in files:
         path = pathlib.Path(file)
-        if not _is_existing_py_file(path) or not path.stem.startswith("test_"):
+        if not _is_existing_py_file(path):
             continue
-        test_files.append(str(path))
+        stem = path.stem
+        if stem == "conftest" or stem.startswith("test_"):
+            test_files.append(str(path))
     return test_files
 
 
