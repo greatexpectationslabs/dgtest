@@ -40,6 +40,7 @@ def shared_state() -> Dict[str, Any]:
         "source_files": None,
         "test_files": None,
         "definition_map": None,
+        "dependency_graph": None,
     }
 
 
@@ -139,10 +140,25 @@ def test_great_expectations_create_definition_map(
 def test_great_expectations_parse_imports(
     great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
 ) -> None:
+    source, _ = great_expectations
     source_files = shared_state["source_files"]
     definition_map = shared_state["definition_map"]
 
-    imports = parse_import_nodes_from_codebase(
+    dependency_graph = parse_import_nodes_from_codebase(
         source_files, "great_expectations", definition_map
     )
-    assert imports == {}
+    assert len(dependency_graph) == 416
+
+    # Selecting registry.py an an example of proper dependency linking
+    standard_node = os.path.join(source, "expectations/registry.py")
+    assert dependency_graph[standard_node] == {
+        os.path.join(source, "core/id_dict.py"),
+        os.path.join(source, "core/metric.py"),
+        os.path.join(source, "validator/metric_configuration.py"),
+    }
+
+    # No file relies on the functions/classes defined in exceptions.py
+    orphaned_node = os.path.join(source, "render/exceptions.py")
+    assert dependency_graph[orphaned_node] == set()
+
+    shared_state["dependency_graph"] = dependency_graph
