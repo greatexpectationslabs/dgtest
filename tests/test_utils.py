@@ -12,8 +12,8 @@ from dgtest.utils import (
 
 
 @pytest.fixture(scope="function")
-def create_mock_codebase(tmpdir: py.path.local) -> Callable:
-    def _create_mock_codebase(directory: str, *files: str) -> Tuple[str, List[str]]:
+def create_mock_files(tmpdir: py.path.local) -> Callable:
+    def _create_mock_files(directory: str, *files: str) -> Tuple[str, List[str]]:
         my_dir = tmpdir.mkdir(directory)
         my_files = []
         for name in files:
@@ -22,11 +22,11 @@ def create_mock_codebase(tmpdir: py.path.local) -> Callable:
             my_files.append(temp_file.strpath)
         return my_dir.strpath, my_files
 
-    return _create_mock_codebase
+    return _create_mock_files
 
 
-def test_get_changed_files_only_source_files(create_mock_codebase: Callable) -> None:
-    _, files = create_mock_codebase("my_dir", "foo.py", "bar.py", "baz.py")
+def test_get_changed_files_only_source_files(create_mock_files: Callable) -> None:
+    _, files = create_mock_files("my_dir", "foo.py", "bar.py", "baz.py")
     with mock.patch("dgtest.utils.git.Repo") as mock_repo:
         mock_repo().git.diff.return_value = "\n".join(file for file in files)
         changed_source_files, changed_test_files = get_changed_files("origin/master")
@@ -36,9 +36,9 @@ def test_get_changed_files_only_source_files(create_mock_codebase: Callable) -> 
 
 
 def test_get_changed_files_both_source_and_test_files(
-    create_mock_codebase: Callable,
+    create_mock_files: Callable,
 ) -> None:
-    _, files = create_mock_codebase(
+    _, files = create_mock_files(
         "my_dir",
         "foo.py",
         "bar.py",
@@ -57,9 +57,9 @@ def test_get_changed_files_both_source_and_test_files(
 
 
 def test_get_changed_files_excludes_non_py_files(
-    create_mock_codebase: Callable,
+    create_mock_files: Callable,
 ) -> None:
-    _, files = create_mock_codebase(
+    _, files = create_mock_files(
         "my_dir", "foo.yml", "bar.json", "README.md", "LICENSE"
     )
     with mock.patch("dgtest.utils.git.Repo") as mock_repo:
@@ -82,8 +82,8 @@ def test_get_changed_files_excludes_nonexistant_files(tmpdir: py.path.local) -> 
     assert len(changed_test_files) == 0
 
 
-def test_retrieve_all_source_files(create_mock_codebase: Callable) -> None:
-    my_dir, _ = create_mock_codebase(
+def test_retrieve_all_source_files(create_mock_files: Callable) -> None:
+    my_dir, _ = create_mock_files(
         "my_dir", "foo.py", "bar.py", "test_foo.py", "test_bar.py"
     )
     source_files = retrieve_all_source_files(my_dir)
@@ -91,9 +91,9 @@ def test_retrieve_all_source_files(create_mock_codebase: Callable) -> None:
 
 
 def test_retrieve_all_test_files_without_test_arg(
-    create_mock_codebase: Callable,
+    create_mock_files: Callable,
 ) -> None:
-    my_source_dir, _ = create_mock_codebase(
+    my_source_dir, _ = create_mock_files(
         "my_dir", "foo.py", "bar.py", "test_foo.py", "test_bar.py"
     )
     my_test_dir = None
@@ -101,10 +101,10 @@ def test_retrieve_all_test_files_without_test_arg(
     assert len(test_files) == 2
 
 
-def test_retrieve_all_test_files_with_test_arg(create_mock_codebase: Callable) -> None:
-    my_source_dir, _ = create_mock_codebase(
+def test_retrieve_all_test_files_with_test_arg(create_mock_files: Callable) -> None:
+    my_source_dir, _ = create_mock_files(
         "my_dir", "foo.py", "bar.py", "test_foo.py", "test_bar.py"
     )
-    my_test_dir, _ = create_mock_codebase("tests", "test_baz.py", "test_qux.py")
+    my_test_dir, _ = create_mock_files("tests", "test_baz.py", "test_qux.py")
     test_files = retrieve_all_test_files(my_source_dir, my_test_dir)
     assert len(test_files) == 4

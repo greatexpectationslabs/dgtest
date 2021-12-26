@@ -1,31 +1,59 @@
+from typing import Callable, Dict, List, Set, Tuple
+
 import py
+import pytest
 
 from dgtest.parse import (
     parse_definition_nodes_from_codebase,
     parse_definition_nodes_from_file,
     parse_import_nodes_from_codebase,
     parse_import_nodes_from_file,
+    parse_pytest_fixtures_from_file,
     update_dict,
 )
 
 
-def test_parse_definition_nodes_from_file_collects_function_definitions(
-    tmpdir: py.path.local,
-) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
+@pytest.fixture(scope="function")
+def create_mock_codebase(tmpdir: py.path.local) -> Callable:
+    def _create_mock_codebase(
+        directory: str, *files: Tuple[str, str]
+    ) -> Tuple[str, List[str]]:
+        my_dir = tmpdir.mkdir(directory)
+        my_files = []
+        for name, contents in files:
+            temp_file = my_dir.join(name)
+            temp_file.write(contents)
+            my_files.append(temp_file.strpath)
+        return my_dir.strpath, my_files
 
-    my_file1.write(
-        """
+    return _create_mock_codebase
+
+
+@pytest.fixture(scope="function")
+def definition_map() -> Dict[str, Set[str]]:
+    return {
+        "my_first_func": {"my_package/util/file.py"},
+        "my_second_func": {"my_package/core/util.py"},
+        "my_third_func": {"my_package/core/util.py"},
+        "MyClassA": {"my_package/core/my_class.py"},
+        "MyClassB": {"my_package/core/my_class.py"},
+    }
+
+
+def test_parse_definition_nodes_from_file_collects_function_definitions(
+    create_mock_codebase: Callable,
+) -> None:
+
+    file_contents = """
 def my_first_func():
     pass
 
 def my_second_func():
     pass
     """
-    )
 
-    file_definition_map = parse_definition_nodes_from_file(my_file1.strpath)
+    _, my_files = create_mock_codebase("my_dir", ("my_file1.py", file_contents))
+    file_definition_map = parse_definition_nodes_from_file(my_files[0])
 
     assert len(file_definition_map) == 2
     assert (
@@ -39,13 +67,9 @@ def my_second_func():
 
 
 def test_parse_definition_nodes_from_file_collects_class_definitions(
-    tmpdir: py.path.local,
+    create_mock_codebase: Callable,
 ) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
-
-    my_file1.write(
-        """
+    file_contents = """
 class Bar:
     pass
 
@@ -54,59 +78,46 @@ class Baz:
         self.a = a
         self.b = b
     """
-    )
-
-    definition_map = parse_definition_nodes_from_file(my_file1.strpath)
+    _, my_files = create_mock_codebase("my_dir", ("my_file1.py", file_contents))
+    definition_map = parse_definition_nodes_from_file(my_files[0])
 
     assert len(definition_map) == 2
     assert (
-        isinstance(definition_map["Bar"], set)
-        and my_file1.strpath in definition_map["Bar"]
+        isinstance(definition_map["Bar"], set) and my_files[0] in definition_map["Bar"]
     )
     assert (
-        isinstance(definition_map["Baz"], set)
-        and my_file1.strpath in definition_map["Baz"]
+        isinstance(definition_map["Baz"], set) and my_files[0] in definition_map["Baz"]
     )
 
 
 def test_parse_definition_nodes_from_codebase_accounts_for_namespace_collision(
-    tmpdir: py.path.local,
+    create_mock_codebase: Callable,
 ) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
-    my_file1.write(
-        """
-class my_file1:
+
+    file_contents1 = """
+class Foo:
     pass
     """
-    )
-    my_file2 = my_dir.join("bar.py")
-    my_file2.write(
-        """
-class my_file1:
+    file_contents2 = """
+class Foo:
     def __init__(self, a: int, b: int):
         self.a = a
         self.b = b
     """
-    )
 
-    definition_map = parse_definition_nodes_from_codebase(
-        [my_file1.strpath, my_file2.strpath]
+    _, my_files = create_mock_codebase(
+        "my_dir", ("my_file1.py", file_contents1), ("my_file2.py", file_contents2)
     )
+    definition_map = parse_definition_nodes_from_codebase(my_files)
 
     assert len(definition_map) == 1
-    assert (
-        isinstance(definition_map["my_file1"], set) and len(definition_map["Foo"]) == 2
-    )
+    assert isinstance(definition_map["Foo"], set) and len(definition_map["Foo"]) == 2
 
 
 def test_parse_import_nodes_from_file_with_no_relative_imports(
-    tmpdir: py.path.local,
+    create_mock_codebase: Callable,
 ) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
-    my_file1.write(
-        """
+    file_contents = """
 import copy
 import datetime
 import json
@@ -115,35 +126,25 @@ import os
 from typing import Dict, List, Optional, Union
 from uuid import UUID
     """
-    )
+    _, my_files = create_mock_codebase("my_dir", ("my_file1.py", file_contents))
 
-    imports = parse_import_nodes_from_file(my_file1.strpath, "great_expectations", {})
+    imports = parse_import_nodes_from_file(my_files[0], "my_package", {})
     assert imports == set()
 
 
 def test_parse_import_nodes_from_file_with_relative_imports(
-    tmpdir: py.path.local,
+    create_mock_codebase: Callable,
+    definition_map: Dict[str, Set[str]],
 ) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
-    my_file1.write(
-        """
+    file_contents = """
 from my_package.util import my_first_func
-from my_package.core import MyClass
+from my_package.core import MyClassA
 from my_package.core.util import my_second_func, my_third_func
     """
-    )
 
-    definition_map = {
-        "my_first_func": {"my_package/util/file.py"},
-        "MyClass": {"my_package/core/my_class.py"},
-        "my_second_func": {"my_package/core/util.py"},
-        "my_third_func": {"my_package/core/util.py"},
-    }
+    _, my_files = create_mock_codebase("my_dir", ("my_file.py", file_contents))
+    imports = parse_import_nodes_from_file(my_files[0], "my_package", definition_map)
 
-    imports = parse_import_nodes_from_file(
-        my_file1.strpath, "my_package", definition_map
-    )
     assert len(imports) == 3
     assert all(
         path in imports
@@ -156,24 +157,19 @@ from my_package.core.util import my_second_func, my_third_func
 
 
 def test_parse_import_nodes_from_file_with_ambiguous_imports(
-    tmpdir: py.path.local,
+    create_mock_codebase: Callable,
 ) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
-    my_file1.write(
-        """
+    file_contents = """
 from my_package.util import my_first_func
     """
-    )
+    _, my_files = create_mock_codebase("my_dir", ("my_file.py", file_contents))
 
     # Namespace collision means we need to pick the closest import
     definition_map = {
         "my_first_func": {"my_package/util/file.py", "my_package/core/file.py"},
     }
 
-    imports = parse_import_nodes_from_file(
-        my_file1.strpath, "my_package", definition_map
-    )
+    imports = parse_import_nodes_from_file(my_files[0], "my_package", definition_map)
     assert len(imports) == 1
 
     # The import statement included "util" so we pick the first option
@@ -181,60 +177,118 @@ from my_package.util import my_first_func
     assert "my_package/core/file.py" not in imports
 
 
-def test_parse_import_nodes_from_codebase(tmpdir: py.path.local) -> None:
-    my_dir = tmpdir.mkdir("my_dir")
-    my_file1 = my_dir.join("foo.py")
-    my_file2 = my_dir.join("bar.py")
-
-    my_file1.write(
-        """
+def test_parse_import_nodes_from_codebase(
+    create_mock_codebase: Callable, definition_map: Dict[str, Set[str]]
+) -> None:
+    file_contents1 = """
 import copy
 import datetime
 import json
 import logging
 
-from my_package.core import MyClass
+from my_package.core import MyClassA
 from my_package.util import my_first_func
     """
-    )
-    my_file2.write(
-        """
+    file_contents2 = """
 import pandas as pd
 import numpy as np
 import os
 
-from my_package.core import MyClass
+from my_package.core import MyClassB
 from my_package.core.util import my_second_func, my_third_func
     """
-    )
 
-    definition_map = {
-        "my_first_func": {"my_package/util/file.py"},
-        "MyClass": {"my_package/core/my_class.py"},
-        "my_second_func": {"my_package/core/util.py"},
-        "my_third_func": {"my_package/core/util.py"},
-    }
-
-    imports = parse_import_nodes_from_codebase(
-        [my_file1.strpath, my_file2.strpath], "my_package", definition_map
+    _, my_files = create_mock_codebase(
+        "my_dir", ("my_file1.py", file_contents1), ("my_file2.py", file_contents2)
     )
+    imports = parse_import_nodes_from_codebase(my_files, "my_package", definition_map)
+
     assert len(imports) == 2
-    assert imports[my_file1.strpath] == {
+    assert imports[my_files[0]] == {
         "my_package/util/file.py",
         "my_package/core/my_class.py",
     }
-    assert imports[my_file2.strpath] == {
+    assert imports[my_files[1]] == {
         "my_package/core/util.py",
         "my_package/core/my_class.py",
     }
 
 
-def test_parse_pytest_fixtures_from_file() -> None:
-    pass  # TBD
+def test_parse_pytest_fixtures_from_file_with_simple_fixtures(
+    create_mock_codebase: Callable,
+) -> None:
+    file_contents = """
+@pytest.fixture()
+def my_fixture1():
+    pass
+
+@pytest.fixture()
+def my_fixture2():
+    pass
+    """
+    _, my_files = create_mock_codebase("my_dir", ("conftest.py", file_contents))
+
+    imports = parse_pytest_fixtures_from_file(my_files[0], {})
+    assert imports == {}
 
 
-def test_parse_pytest_fixtures_from_codebase() -> None:
-    pass  # TBD
+def test_parse_pytest_fixtures_from_file_with_fixtures_referencing_symbols(
+    create_mock_codebase: Callable,
+    definition_map: Dict[str, Set[str]],
+) -> None:
+    file_contents = """
+@pytest.fixture()
+def my_fixture():
+    my_class = MyClassA()
+    my_first_func(my_class)
+    return my_class
+    """
+
+    _, my_files = create_mock_codebase("my_dir", ("conftest.py", file_contents))
+    imports = parse_pytest_fixtures_from_file(my_files[0], definition_map)
+
+    assert len(imports) == 1
+    assert imports["my_fixture"] == {
+        "my_package/core/my_class.py",
+        "my_package/util/file.py",
+    }
+
+
+# FIXME(cdkini): This functionality needs to be enabled!
+# def test_parse_pytest_fixtures_from_file_with_fixtures_referencing_each_other(
+#     create_mock_codebase: Callable,
+#     definition_map: Dict[str, Set[str]],
+# ) -> None:
+#     file_contents = """
+# @pytest.fixture()
+# def my_fixture1():
+#     my_class = MyClassA()
+#     my_first_func(my_class)
+#     return my_class
+
+
+# @pytest.fixture()
+# def my_fixture2(my_fixture1): # This should share 'my_fixture1's dependencies
+#     return my_fixture1
+#     """
+
+#     _, my_files = create_mock_codebase("my_dir", ("conftest.py", file_contents))
+#     imports = parse_pytest_fixtures_from_file(my_files[0], definition_map)
+
+#     assert len(imports) == 2
+#     assert imports["my_fixture1"] == {
+#         "my_package/core/my_class.py",
+#         "my_package/util/file.py",
+#     }
+#     assert imports["my_fixture2"] == {
+#         "my_package/core/my_class.py",
+#         "my_package/util/file.py",
+#     }
+
+
+# TODO(cdkini): Open to write test for this method!
+# def test_parse_pytest_fixtures_from_codebase(tmpdir: py.path.local) -> None:
+#     pass  # TBD
 
 
 def test_update_dict_updates_existing_keys() -> None:

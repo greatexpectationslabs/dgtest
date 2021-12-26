@@ -1,5 +1,6 @@
 import ast
 import difflib
+import pathlib
 from collections import defaultdict, namedtuple
 from typing import DefaultDict, Dict, List, Optional, Set
 
@@ -68,7 +69,7 @@ def _gather_import_nodes_from_file(file: str) -> List[Import]:
         else:
             continue
 
-        for n in node.names:  # type: ignore [attr-defined] - mypy doesn't agree with Union[ast.Import, ast.ImportFrom] having a names attr
+        for n in node.names:  # type: ignore [attr-defined] - mypy doesn't agree with Union[ast.Import, ast.ImportFrom] having a 'names' attr
             import_ = Import(file, module, n.name.split("."), n.asname)
             imports.append(import_)
 
@@ -91,6 +92,64 @@ def _generate_path_from_import_node(
         # If we're not sure of the origin, use the stringified import statement and make an educated guess
         closest = difflib.get_close_matches(partial_path, candidates)[0]
         return str(closest)
+
+
+def parse_pytest_fixtures_from_codebase(
+    test_files: List[str], definition_map: Dict[str, Set[str]]
+) -> Dict[str, Set[str]]:
+    fixture_map: Dict[str, Set[str]] = {}
+    for file in test_files:
+        path = pathlib.Path(file)
+        if path.stem == "conftest":
+            file_fixtures = parse_pytest_fixtures_from_file(file, definition_map)
+            update_dict(fixture_map, file_fixtures)
+    return fixture_map
+
+
+def parse_pytest_fixtures_from_file(
+    file: str, definition_map: Dict[str, Set[str]]
+) -> Dict[str, Set[str]]:
+    fixture_nodes = _gather_fixture_nodes_from_file(file)
+
+    # Parse the body of each fixture and find symbols.
+    # If that symbol is something that was defined in the source files (class or function),
+    # create an association between the fixture and the file that the symbol was declared in.
+    fixture_map: DefaultDict[str, Set[str]] = defaultdict(set)
+    for node in fixture_nodes:
+        _create_associations_between_fixture_and_definitions(
+            node, fixture_map, definition_map
+        )
+
+    return fixture_map
+
+
+def _gather_fixture_nodes_from_file(file: str) -> List[ast.FunctionDef]:
+    with open(file) as f:
+        root = ast.parse(f.read(), file)
+
+    fixture_nodes = []
+    for node in root.body:
+        if isinstance(node, ast.FunctionDef):
+            for d in node.decorator_list:
+                if isinstance(d, ast.Attribute) and d.attr == "fixture":
+                    fixture_nodes.append(node)
+                elif isinstance(d, ast.Call) and d.func.attr == "fixture":  # type: ignore [attr-defined] - mypy doesn't agree with ast.Call having an 'attr' attr
+                    fixture_nodes.append(node)
+
+    return fixture_nodes
+
+
+def _create_associations_between_fixture_and_definitions(
+    fixture_node: ast.FunctionDef,
+    fixture_map: DefaultDict[str, Set[str]],
+    definition_map: Dict[str, Set[str]],
+) -> None:
+    for child in ast.walk(fixture_node):
+        for symbol in child.__dict__.values():
+            if isinstance(symbol, str) and symbol in definition_map:
+                candidates = definition_map[symbol]
+                for candidate in candidates:
+                    fixture_map[fixture_node.name].add(candidate)
 
 
 def update_dict(A: Dict[str, Set[str]], B: Dict[str, Set[str]]) -> None:
