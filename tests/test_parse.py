@@ -13,9 +13,9 @@ def test_parse_definition_nodes_from_file_collects_function_definitions(
     tmpdir: py.path.local,
 ) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
+    my_file1 = my_dir.join("foo.py")
 
-    foo.write(
+    my_file1.write(
         """
 def my_first_func():
     pass
@@ -25,7 +25,7 @@ def my_second_func():
     """
     )
 
-    file_definition_map = parse_definition_nodes_from_file(foo.strpath)
+    file_definition_map = parse_definition_nodes_from_file(my_file1.strpath)
 
     assert len(file_definition_map) == 2
     assert (
@@ -42,9 +42,9 @@ def test_parse_definition_nodes_from_file_collects_class_definitions(
     tmpdir: py.path.local,
 ) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
+    my_file1 = my_dir.join("foo.py")
 
-    foo.write(
+    my_file1.write(
         """
 class Bar:
     pass
@@ -56,14 +56,16 @@ class Baz:
     """
     )
 
-    definition_map = parse_definition_nodes_from_file(foo.strpath)
+    definition_map = parse_definition_nodes_from_file(my_file1.strpath)
 
     assert len(definition_map) == 2
     assert (
-        isinstance(definition_map["Bar"], set) and foo.strpath in definition_map["Bar"]
+        isinstance(definition_map["Bar"], set)
+        and my_file1.strpath in definition_map["Bar"]
     )
     assert (
-        isinstance(definition_map["Baz"], set) and foo.strpath in definition_map["Baz"]
+        isinstance(definition_map["Baz"], set)
+        and my_file1.strpath in definition_map["Baz"]
     )
 
 
@@ -71,35 +73,39 @@ def test_parse_definition_nodes_from_codebase_accounts_for_namespace_collision(
     tmpdir: py.path.local,
 ) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
-    foo.write(
+    my_file1 = my_dir.join("foo.py")
+    my_file1.write(
         """
-class Foo:
+class my_file1:
     pass
     """
     )
-    bar = my_dir.join("bar.py")
-    bar.write(
+    my_file2 = my_dir.join("bar.py")
+    my_file2.write(
         """
-class Foo:
+class my_file1:
     def __init__(self, a: int, b: int):
         self.a = a
         self.b = b
     """
     )
 
-    definition_map = parse_definition_nodes_from_codebase([foo.strpath, bar.strpath])
+    definition_map = parse_definition_nodes_from_codebase(
+        [my_file1.strpath, my_file2.strpath]
+    )
 
     assert len(definition_map) == 1
-    assert isinstance(definition_map["Foo"], set) and len(definition_map["Foo"]) == 2
+    assert (
+        isinstance(definition_map["my_file1"], set) and len(definition_map["Foo"]) == 2
+    )
 
 
 def test_parse_import_nodes_from_file_with_no_relative_imports(
     tmpdir: py.path.local,
 ) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
-    foo.write(
+    my_file1 = my_dir.join("foo.py")
+    my_file1.write(
         """
 import copy
 import datetime
@@ -111,7 +117,7 @@ from uuid import UUID
     """
     )
 
-    imports = parse_import_nodes_from_file(foo.strpath, "great_expectations", {})
+    imports = parse_import_nodes_from_file(my_file1.strpath, "great_expectations", {})
     assert imports == set()
 
 
@@ -119,8 +125,8 @@ def test_parse_import_nodes_from_file_with_relative_imports(
     tmpdir: py.path.local,
 ) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
-    foo.write(
+    my_file1 = my_dir.join("foo.py")
+    my_file1.write(
         """
 from my_package.util import my_first_func
 from my_package.core import MyClass
@@ -135,7 +141,9 @@ from my_package.core.util import my_second_func, my_third_func
         "my_third_func": {"my_package/core/util.py"},
     }
 
-    imports = parse_import_nodes_from_file(foo.strpath, "my_package", definition_map)
+    imports = parse_import_nodes_from_file(
+        my_file1.strpath, "my_package", definition_map
+    )
     assert len(imports) == 3
     assert all(
         path in imports
@@ -151,8 +159,8 @@ def test_parse_import_nodes_from_file_with_ambiguous_imports(
     tmpdir: py.path.local,
 ) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
-    foo.write(
+    my_file1 = my_dir.join("foo.py")
+    my_file1.write(
         """
 from my_package.util import my_first_func
     """
@@ -163,7 +171,9 @@ from my_package.util import my_first_func
         "my_first_func": {"my_package/util/file.py", "my_package/core/file.py"},
     }
 
-    imports = parse_import_nodes_from_file(foo.strpath, "my_package", definition_map)
+    imports = parse_import_nodes_from_file(
+        my_file1.strpath, "my_package", definition_map
+    )
     assert len(imports) == 1
 
     # The import statement included "util" so we pick the first option
@@ -173,10 +183,10 @@ from my_package.util import my_first_func
 
 def test_parse_import_nodes_from_codebase(tmpdir: py.path.local) -> None:
     my_dir = tmpdir.mkdir("my_dir")
-    foo = my_dir.join("foo.py")
-    bar = my_dir.join("bar.py")
+    my_file1 = my_dir.join("foo.py")
+    my_file2 = my_dir.join("bar.py")
 
-    foo.write(
+    my_file1.write(
         """
 import copy
 import datetime
@@ -187,7 +197,7 @@ from my_package.core import MyClass
 from my_package.util import my_first_func
     """
     )
-    bar.write(
+    my_file2.write(
         """
 import pandas as pd
 import numpy as np
@@ -206,35 +216,43 @@ from my_package.core.util import my_second_func, my_third_func
     }
 
     imports = parse_import_nodes_from_codebase(
-        [foo.strpath, bar.strpath], "my_package", definition_map
+        [my_file1.strpath, my_file2.strpath], "my_package", definition_map
     )
     assert len(imports) == 2
-    assert imports[foo.strpath] == {
+    assert imports[my_file1.strpath] == {
         "my_package/util/file.py",
         "my_package/core/my_class.py",
     }
-    assert imports[bar.strpath] == {
+    assert imports[my_file2.strpath] == {
         "my_package/core/util.py",
         "my_package/core/my_class.py",
     }
 
 
+def test_parse_pytest_fixtures_from_file() -> None:
+    pass  # TBD
+
+
+def test_parse_pytest_fixtures_from_codebase() -> None:
+    pass  # TBD
+
+
 def test_update_dict_updates_existing_keys() -> None:
-    A = {"foo": {"a", "b", "c"}}
-    B = {"foo": {"c", "d", "e"}}
+    A = {"my_file1": {"a", "b", "c"}}
+    B = {"my_file1": {"c", "d", "e"}}
 
     update_dict(A, B)
 
     assert len(A) == 1
-    assert all(num in A["foo"] for num in ("a", "b", "c", "d", "e"))
+    assert all(num in A["my_file1"] for num in ("a", "b", "c", "d", "e"))
 
 
 def test_update_dict_adds_new_keys() -> None:
-    A = {"foo": {"a", "b", "c"}}
+    A = {"my_file1": {"a", "b", "c"}}
     B = {"bar": {"c", "d", "e"}}
 
     update_dict(A, B)
 
     assert len(A) == 2
-    assert all(num in A["foo"] for num in ("a", "b", "c"))
+    assert all(num in A["my_file1"] for num in ("a", "b", "c"))
     assert all(num in A["bar"] for num in ("c", "d", "e"))
