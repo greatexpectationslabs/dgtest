@@ -90,10 +90,8 @@ def _generate_path_from_import_node(
         return list(candidates)[0]
     else:
         # If we're not sure of the origin, use the stringified import statement and make an educated guess
-        closest = difflib.get_close_matches(partial_path, candidates)
-        if closest:
-            return str(closest[0])
-        return None
+        closest = difflib.get_close_matches(partial_path, candidates, n=1, cutoff=0)
+        return str(closest[0])
 
 
 def parse_pytest_fixtures_from_codebase(
