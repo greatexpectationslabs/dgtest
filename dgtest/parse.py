@@ -10,11 +10,11 @@ Import = namedtuple("Import", ["source", "module", "name", "alias"])
 
 
 def get_dependency_graphs(
-    source: str, tests: str
+    source: str, tests: Optional[str]
 ) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
     # Identify relevant files for later steps
     source_files = retrieve_all_source_files(source)
-    test_files = retrieve_all_test_files(tests)
+    test_files = retrieve_all_test_files(source, tests)
 
     # Parse function/class defs and fixtures
     definition_map = parse_definition_nodes_from_codebase(source_files)
