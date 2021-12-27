@@ -17,3 +17,15 @@ def traverse_graph(
             stack.append((child, d - 1))
 
     return seen
+
+
+def determine_relevant_source_files() -> None:
+    pass  # TODO(cdkini): Open to write!
+
+
+def determine_test_candidates() -> None:
+    pass  # TODO(cdkini): Open to write!
+
+
+def determine_tests_to_run() -> None:
+    pass  # TODO(cdkini): Open to write!
