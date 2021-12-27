@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Any, Dict, Tuple
 
 import git
@@ -8,6 +9,7 @@ from dgtest.parse import (
     parse_definition_nodes_from_codebase,
     parse_import_nodes_from_codebase,
     parse_pytest_fixtures_from_codebase,
+    parse_pytest_tests_from_codebase,
 )
 from dgtest.utils import retrieve_all_source_files, retrieve_all_test_files
 
@@ -183,9 +185,38 @@ def test_great_expectations_parse_fixtures(
         for source_file in ("core/util.py", "dataset/sparkdf_dataset.py")
     )
 
+    shared_state["fixture_map"] = fixture_map
+
 
 @pytest.mark.dependency(depends=["test_great_expectations_parse_fixtures"])
 def test_great_expectations_parse_tests(
     great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
 ) -> None:
-    pass  # TODO(cdkini): TBD
+    source, _ = great_expectations
+    test_files = shared_state["test_files"]
+    definition_map = shared_state["definition_map"]
+    fixture_map = shared_state["fixture_map"]
+
+    tests_dependency_graph = parse_pytest_tests_from_codebase(
+        test_files, "great_expectations", definition_map, fixture_map
+    )
+
+    assert len(tests_dependency_graph) == 163
+    for test_sets in tests_dependency_graph.values():
+        assert all(Path(file).stem.startswith("test_") for file in test_sets)
+
+    usage_statistics_path = os.path.join(
+        source, "core/usage_statistics/usage_statistics.py"
+    )
+    usage_statistics_tests = tests_dependency_graph[usage_statistics_path]
+    assert len(usage_statistics_tests) == 4
+    assert all(
+        Path(test_file).stem
+        in (
+            "test_usage_statistics",
+            "test_usage_statistics_handler_methods",
+            "test_util",
+            "test_expectation_arguments",
+        )
+        for test_file in usage_statistics_tests
+    )
