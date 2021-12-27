@@ -142,7 +142,11 @@ def _gather_fixture_nodes_from_file(file: str) -> List[ast.FunctionDef]:
             for d in node.decorator_list:
                 if isinstance(d, ast.Attribute) and d.attr == "fixture":
                     fixture_nodes.append(node)
-                elif isinstance(d, ast.Call) and d.func.attr == "fixture":  # type: ignore [attr-defined] - mypy doesn't agree with ast.Call having an 'attr' attr
+                elif (
+                    isinstance(d, ast.Call)
+                    and hasattr(d.func, "attr")
+                    and d.func.attr == "fixture"  # type: ignore [attr-defined] - mypy doesn't love this 'attr' attr
+                ):
                     fixture_nodes.append(node)
 
     return fixture_nodes

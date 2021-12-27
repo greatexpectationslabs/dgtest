@@ -7,6 +7,7 @@ import pytest
 from dgtest.parse import (
     parse_definition_nodes_from_codebase,
     parse_import_nodes_from_codebase,
+    parse_pytest_fixtures_from_codebase,
 )
 from dgtest.utils import retrieve_all_source_files, retrieve_all_test_files
 
@@ -41,6 +42,8 @@ def shared_state() -> Dict[str, Any]:
         "test_files": None,
         "definition_map": None,
         "dependency_graph": None,
+        "fixture_map": None,
+        "test_dependency_graph": None,
     }
 
 
@@ -162,3 +165,27 @@ def test_great_expectations_parse_imports(
     assert dependency_graph[orphaned_node] == set()
 
     shared_state["dependency_graph"] = dependency_graph
+
+
+@pytest.mark.dependency(depends=["test_great_expectations_parse_imports"])
+def test_great_expectations_parse_fixtures(
+    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
+) -> None:
+    source, _ = great_expectations
+    test_files = shared_state["test_files"]
+    definition_map = shared_state["definition_map"]
+    fixture_map = parse_pytest_fixtures_from_codebase(test_files, definition_map)
+
+    assert len(fixture_map) == 116
+    assert len(fixture_map["spark_session"]) == 2
+    assert all(
+        os.path.join(source, source_file) in fixture_map["spark_session"]
+        for source_file in ("core/util.py", "dataset/sparkdf_dataset.py")
+    )
+
+
+@pytest.mark.dependency(depends=["test_great_expectations_parse_fixtures"])
+def test_great_expectations_parse_tests(
+    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
+) -> None:
+    pass  # TODO(cdkini): TBD
