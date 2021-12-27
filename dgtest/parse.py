@@ -7,6 +7,9 @@ from typing import DefaultDict, Dict, List, Optional, Set
 Import = namedtuple("Import", ["source", "module", "name", "alias"])
 
 
+# Parse function/class definitions =================================================================
+
+
 def parse_definition_nodes_from_codebase(files: List[str]) -> Dict[str, Set[str]]:
     definition_map: Dict[str, Set[str]] = {}
     for file in files:
@@ -29,6 +32,9 @@ def parse_definition_nodes_from_file(file: str) -> DefaultDict[str, Set[str]]:
         file_definition_map[name].add(file)
 
     return file_definition_map
+
+
+# Parse import statements =========================================================================
 
 
 def parse_import_nodes_from_codebase(
@@ -94,6 +100,9 @@ def _generate_path_from_import_node(
         return str(closest[0])
 
 
+# Parse pytest fixtures ===========================================================================
+
+
 def parse_pytest_fixtures_from_codebase(
     test_files: List[str], definition_map: Dict[str, Set[str]]
 ) -> Dict[str, Set[str]]:
@@ -150,6 +159,57 @@ def _create_associations_between_fixture_and_definitions(
                 candidates = definition_map[symbol]
                 for candidate in candidates:
                     fixture_map[fixture_node.name].add(candidate)
+
+
+# Parse pytest tests ==============================================================================
+
+
+def parse_pytest_tests_from_codebase(
+    test_files: List[str],
+    source: str,
+    definition_map: Dict[str, Set[str]],
+    fixture_map: Dict[str, Set[str]],
+) -> Dict[str, Set[str]]:
+    tests_dependency_graph: Dict[str, Set[str]] = {}
+    for file in test_files:
+        path = pathlib.Path(file)
+        if path.stem.startswith("test_"):
+            file_graph = parse_pytest_tests_from_file(
+                file, source, definition_map, fixture_map
+            )
+            update_dict(tests_dependency_graph, file_graph)
+
+    return tests_dependency_graph
+
+
+def parse_pytest_tests_from_file(
+    test_file: str,
+    source: str,
+    definition_map: Dict[str, Set[str]],
+    fixture_map: Dict[str, Set[str]],
+) -> DefaultDict[str, Set[str]]:
+    # Parse the test file's imports and create associations between source files and test files
+    file_graph: DefaultDict[str, Set[str]] = defaultdict(set)
+    source_file_paths = parse_import_nodes_from_file(test_file, source, definition_map)
+    for source_file in source_file_paths:
+        file_graph[source_file].add(test_file)
+
+    with open(test_file) as f:
+        root = ast.parse(f.read(), test_file)
+
+    # For each test function declaration in the test file, check the args to see if they are fixtures
+    # If they are, add the fixture's dependencies
+    for node in root.body:
+        if isinstance(node, ast.FunctionDef):
+            for symbol in node.args.args:
+                arg = symbol.arg
+                for source_file in fixture_map.get(arg, set()):
+                    file_graph[source_file].add(test_file)
+
+    return file_graph
+
+
+# Miscellaneous ===================================================================================
 
 
 def update_dict(A: Dict[str, Set[str]], B: Dict[str, Set[str]]) -> None:

@@ -1,3 +1,4 @@
+import pathlib
 from typing import Callable, Dict, List, Set, Tuple
 
 import py
@@ -9,6 +10,8 @@ from dgtest.parse import (
     parse_import_nodes_from_codebase,
     parse_import_nodes_from_file,
     parse_pytest_fixtures_from_file,
+    parse_pytest_tests_from_codebase,
+    parse_pytest_tests_from_file,
     update_dict,
 )
 
@@ -38,6 +41,11 @@ def definition_map() -> Dict[str, Set[str]]:
         "MyClassA": {"my_package/core/my_class.py"},
         "MyClassB": {"my_package/core/my_class.py"},
     }
+
+
+@pytest.fixture(scope="function")
+def fixture_map() -> Dict[str, Set[str]]:
+    return {"prepare_classes": {"my_package/core/my_class.py"}}
 
 
 def test_parse_definition_nodes_from_file_collects_function_definitions(
@@ -289,6 +297,118 @@ def my_fixture():
 # TODO(cdkini): Open to write test for this method!
 # def test_parse_pytest_fixtures_from_codebase(tmpdir: py.path.local) -> None:
 #     pass  # TBD
+
+
+def test_parse_pytest_tests_from_file_with_imports(
+    create_mock_codebase: Callable, definition_map: Dict[str, Set[str]]
+) -> None:
+    test_file_name = "test_my_class.py"
+    file_contents = """
+from my_package.core import MyClassA, MyClassB
+
+def test_MyClassA():
+    assert MyClassA()
+
+def test_MyClassB():
+    assert MyClassB()
+    """
+
+    _, my_files = create_mock_codebase("my_dir", (test_file_name, file_contents))
+    file_graph = parse_pytest_tests_from_file(
+        my_files[0], "my_package", definition_map, fixture_map={}
+    )
+
+    assert len(file_graph) == 1
+    assert len(file_graph["my_package/core/my_class.py"]) == 1
+    assert list(file_graph["my_package/core/my_class.py"])[0].endswith(
+        "test_my_class.py"
+    )
+
+
+def test_parse_pytest_tests_from_file_with_fixtures(
+    create_mock_codebase: Callable,
+    definition_map: Dict[str, Set[str]],
+    fixture_map: Dict[str, Set[str]],
+) -> None:
+    test_file_name = "test_my_class.py"
+    file_contents = """
+def test_my_classes(prepare_classes):
+    pass
+"""
+
+    _, my_files = create_mock_codebase("my_dir", (test_file_name, file_contents))
+
+    file_graph = parse_pytest_tests_from_file(
+        my_files[0], "my_package", definition_map, fixture_map
+    )
+
+    assert len(file_graph) == 1
+    assert len(file_graph["my_package/core/my_class.py"]) == 1
+    assert list(file_graph["my_package/core/my_class.py"])[0].endswith(
+        "test_my_class.py"
+    )
+
+
+def test_parse_pytest_tests_from_file_with_imports_and_fixtures(
+    create_mock_codebase: Callable,
+    definition_map: Dict[str, Set[str]],
+    fixture_map: Dict[str, Set[str]],
+) -> None:
+    test_file_name = "test_my_class.py"
+    file_contents = """
+from my_package.core import MyClassA
+from my_package.util import my_first_func
+
+
+def test_my_classes(prepare_classes):
+    pass
+"""
+
+    _, my_files = create_mock_codebase("my_dir", (test_file_name, file_contents))
+    file_graph = parse_pytest_tests_from_file(
+        my_files[0], "my_package", definition_map, fixture_map
+    )
+
+    assert len(file_graph) == 2
+    for file in ("my_package/core/my_class.py", "my_package/util/file.py"):
+        assert len(file_graph[file]) == 1
+        assert list(file_graph[file])[0].endswith("test_my_class.py")
+
+
+def test_parse_pytest_tests_from_codebase(
+    create_mock_codebase: Callable,
+    definition_map: Dict[str, Set[str]],
+    fixture_map: Dict[str, Set[str]],
+) -> None:
+    file_contents1 = """
+from my_package.core import MyClassA
+from my_package.util import my_first_func
+
+def test_my_classes(prepare_classes):
+    pass
+    """
+    file_contents2 = """
+from my_package.util import my_first_func
+
+@pytest.fixture()
+def my_fixture():
+    return my_first_func()
+
+def test_my_classes(fake_fixture, my_fixture):
+    pass
+    """
+
+    _, my_files = create_mock_codebase(
+        "my_dir", ("test_file1.py", file_contents1), ("test_file2.py", file_contents2)
+    )
+
+    tests_dependency_graph = parse_pytest_tests_from_codebase(
+        my_files, "my_package", definition_map, fixture_map
+    )
+
+    assert len(tests_dependency_graph) == 2
+    assert len(tests_dependency_graph["my_package/core/my_class.py"]) == 1
+    assert len(tests_dependency_graph["my_package/util/file.py"]) == 2
 
 
 def test_update_dict_updates_existing_keys() -> None:
