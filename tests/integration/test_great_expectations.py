@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Tuple
 
 import git
 import pytest
@@ -37,23 +37,11 @@ def great_expectations(tmpdir_factory: Any, pinned_release: str) -> Tuple[str, s
     return source, tests
 
 
-@pytest.fixture(scope="session")
-def shared_state() -> Dict[str, Any]:
-    return {
-        "source_files": None,
-        "test_files": None,
-        "definition_map": None,
-        "dependency_graph": None,
-        "fixture_map": None,
-        "test_dependency_graph": None,
-    }
+def test_great_expectations(great_expectations: Tuple[str, str]) -> None:
+    # 1. Gather all source/test files from the GE repo for later use ===================================================
 
-
-@pytest.mark.dependency()
-def test_great_expectations_gather_source_and_test_files(
-    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
-) -> None:
     source, tests = great_expectations
+
     source_files = retrieve_all_source_files(source)
     test_files = retrieve_all_test_files(source, tests)
 
@@ -63,17 +51,7 @@ def test_great_expectations_gather_source_and_test_files(
     conftests = [file for file in test_files if file.endswith("conftest.py")]
     assert len(conftests) == 8
 
-    shared_state["source_files"] = source_files
-    shared_state["test_files"] = test_files
-
-
-@pytest.mark.dependency(
-    depends=["test_great_expectations_gather_source_and_test_files"]
-)
-def test_great_expectations_create_definition_map(
-    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
-) -> None:
-    source_files = shared_state["source_files"]
+    # 2. Create a map between all function/class definitions and where they originate ==================================
 
     definition_map = parse_definition_nodes_from_codebase(source_files)
     assert len(definition_map) == 1099
@@ -138,16 +116,7 @@ def test_great_expectations_create_definition_map(
         len(definition_map[func]) > 1 for func in funcs_with_namespace_collisions
     )
 
-    shared_state["definition_map"] = definition_map
-
-
-@pytest.mark.dependency(depends=["test_great_expectations_create_definition_map"])
-def test_great_expectations_parse_imports(
-    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
-) -> None:
-    source, _ = great_expectations
-    source_files = shared_state["source_files"]
-    definition_map = shared_state["definition_map"]
+    # 3. Parse all import statements in source files to create a dependency graph ======================================
 
     dependency_graph = parse_import_nodes_from_codebase(
         source_files, "great_expectations", definition_map
@@ -166,16 +135,8 @@ def test_great_expectations_parse_imports(
     orphaned_node = os.path.join(source, "render/exceptions.py")
     assert dependency_graph[orphaned_node] == set()
 
-    shared_state["dependency_graph"] = dependency_graph
+    # 4. Parse all pytest fixtures in conftests ========================================================================
 
-
-@pytest.mark.dependency(depends=["test_great_expectations_parse_imports"])
-def test_great_expectations_parse_fixtures(
-    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
-) -> None:
-    source, _ = great_expectations
-    test_files = shared_state["test_files"]
-    definition_map = shared_state["definition_map"]
     fixture_map = parse_pytest_fixtures_from_codebase(test_files, definition_map)
 
     assert len(fixture_map) == 116
@@ -185,17 +146,7 @@ def test_great_expectations_parse_fixtures(
         for source_file in ("core/util.py", "dataset/sparkdf_dataset.py")
     )
 
-    shared_state["fixture_map"] = fixture_map
-
-
-@pytest.mark.dependency(depends=["test_great_expectations_parse_fixtures"])
-def test_great_expectations_parse_tests(
-    great_expectations: Tuple[str, str], shared_state: Dict[str, Any]
-) -> None:
-    source, _ = great_expectations
-    test_files = shared_state["test_files"]
-    definition_map = shared_state["definition_map"]
-    fixture_map = shared_state["fixture_map"]
+    # 5. Parse all pytest tests in test files ==========================================================================
 
     tests_dependency_graph = parse_pytest_tests_from_codebase(
         test_files, "great_expectations", definition_map, fixture_map
