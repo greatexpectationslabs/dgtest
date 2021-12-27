@@ -1,11 +1,38 @@
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
+
+
+def determine_tests_to_run(
+    changed_files: Tuple[List[str], List[str]],
+    source_dependency_graph: Dict[str, Set[str]],
+    tests_dependency_graph: Dict[str, Set[str]],
+    depth: int,
+    ignore_paths: List[str],
+    filter_: Optional[str],
+) -> List[str]:
+    # Identify which source files are relevant to the current commit
+    changed_source_files, changed_test_files = changed_files
+    relevant_source_files = determine_relevant_source_files(
+        source_dependency_graph, changed_source_files, depth
+    )
+
+    # Use those source files and the dependency graphs to determine test candidates
+    test_candidates = determine_test_candidates(
+        tests_dependency_graph, relevant_source_files, changed_test_files
+    )
+
+    # Filter candidates down based on user args (if applicable)
+    files_to_test = filter_test_candidates(test_candidates, ignore_paths, filter_)
+
+    return files_to_test
 
 
 def determine_relevant_source_files(
-    source_dependency_graph: Dict[str, Set[str]], changed_files: List[str], depth: int
+    source_dependency_graph: Dict[str, Set[str]],
+    changed_source_files: List[str],
+    depth: int,
 ) -> List[str]:
     relevant_source_files: Set[str] = set()
-    for file in changed_files:
+    for file in changed_source_files:
         deps = _traverse_graph(file, source_dependency_graph, depth)
         relevant_source_files.update(deps)
     return sorted(relevant_source_files)
@@ -41,10 +68,10 @@ def determine_test_candidates(
     return sorted(candidates)
 
 
-def determine_tests_to_run(
+def filter_test_candidates(
     test_candidates: List[str], ignore_paths: List[str], filter_: Optional[str] = None
 ) -> List[str]:
-    files_to_test = []
+    filtered_tests = []
     for file in test_candidates:
         # Throw out files that are in our ignore list
         if any(file.startswith(path) for path in ignore_paths):
@@ -52,5 +79,5 @@ def determine_tests_to_run(
         # Throw out files that aren't explicitly part of a filter (if supplied)
         if filter_ and not file.startswith(filter_):
             continue
-        files_to_test.append(file)
-    return files_to_test
+        filtered_tests.append(file)
+    return filtered_tests

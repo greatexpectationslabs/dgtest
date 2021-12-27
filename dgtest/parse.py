@@ -2,12 +2,36 @@ import ast
 import difflib
 import pathlib
 from collections import defaultdict, namedtuple
-from typing import DefaultDict, Dict, List, Optional, Set
+from typing import DefaultDict, Dict, List, Optional, Set, Tuple
+
+from dgtest.utils import retrieve_all_source_files, retrieve_all_test_files
 
 Import = namedtuple("Import", ["source", "module", "name", "alias"])
 
 
-# Parse function/class definitions =================================================================
+def get_dependency_graphs(
+    source: str, tests: str
+) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+    # Identify relevant files for later steps
+    source_files = retrieve_all_source_files(source)
+    test_files = retrieve_all_test_files(tests)
+
+    # Parse function/class defs and fixtures
+    definition_map = parse_definition_nodes_from_codebase(source_files)
+    fixture_map = parse_pytest_fixtures_from_codebase(test_files, definition_map)
+
+    # Use prior steps to generate relevant dependency graphs
+    source_dependency_graph = parse_import_nodes_from_codebase(
+        source_files, source, definition_map
+    )
+    tests_dependency_graph = parse_pytest_tests_from_codebase(
+        test_files, source, definition_map, fixture_map
+    )
+
+    return source_dependency_graph, tests_dependency_graph
+
+
+# Parse function/class definitions =====================================================================================
 
 
 def parse_definition_nodes_from_codebase(files: List[str]) -> Dict[str, Set[str]]:
@@ -34,7 +58,7 @@ def parse_definition_nodes_from_file(file: str) -> DefaultDict[str, Set[str]]:
     return file_definition_map
 
 
-# Parse import statements =========================================================================
+# Parse import statements ==============================================================================================
 
 
 def parse_import_nodes_from_codebase(
@@ -100,7 +124,7 @@ def _generate_path_from_import_node(
         return str(closest[0])
 
 
-# Parse pytest fixtures ===========================================================================
+# Parse pytest fixtures ================================================================================================
 
 
 def parse_pytest_fixtures_from_codebase(
@@ -165,7 +189,7 @@ def _create_associations_between_fixture_and_definitions(
                     fixture_map[fixture_node.name].add(candidate)
 
 
-# Parse pytest tests ==============================================================================
+# Parse pytest tests ===================================================================================================
 
 
 def parse_pytest_tests_from_codebase(
@@ -213,7 +237,7 @@ def parse_pytest_tests_from_file(
     return file_graph
 
 
-# Miscellaneous ===================================================================================
+# Miscellaneous ========================================================================================================
 
 
 def update_dict(A: Dict[str, Set[str]], B: Dict[str, Set[str]]) -> None:

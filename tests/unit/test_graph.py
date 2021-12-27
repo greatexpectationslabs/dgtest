@@ -3,7 +3,7 @@ from typing import Dict, Set
 from dgtest.graph import (
     determine_relevant_source_files,
     determine_test_candidates,
-    determine_tests_to_run,
+    filter_test_candidates,
 )
 
 
@@ -52,7 +52,7 @@ def test_determine_test_candidates_with_changed_test_files() -> None:
     assert candidates == ["my_test1", "my_test2", "my_test3", "my_test4", "my_test5"]
 
 
-def test_determine_tests_to_run_with_ignore_paths() -> None:
+def test_filter_test_candidates_with_ignore_paths() -> None:
     candidates = [
         "a/b/c",
         "a/b/d",
@@ -62,11 +62,11 @@ def test_determine_tests_to_run_with_ignore_paths() -> None:
     ]
     ignore_paths = ["b", "a/c"]
 
-    tests = determine_tests_to_run(candidates, ignore_paths)
+    tests = filter_test_candidates(candidates, ignore_paths)
     assert tests == ["a/b/c", "a/b/d"]
 
 
-def test_determine_tests_to_run_with_filter() -> None:
+def test_filter_test_candidates_with_filter() -> None:
     candidates = [
         "a/b/c",
         "a/b/d",
@@ -75,11 +75,11 @@ def test_determine_tests_to_run_with_filter() -> None:
         "b/d/e",
     ]
 
-    tests = determine_tests_to_run(candidates, [], filter_="a/c")
+    tests = filter_test_candidates(candidates, [], filter_="a/c")
     assert tests == ["a/c/e", "a/c/f"]
 
 
-def test_determine_tests_to_run_with_ignore_paths_and_filter() -> None:
+def test_filter_test_candidates_with_ignore_paths_and_filter() -> None:
     candidates = [
         "a/b/c",
         "a/b/d",
@@ -89,5 +89,5 @@ def test_determine_tests_to_run_with_ignore_paths_and_filter() -> None:
     ]
     ignore_paths = ["b", "a/c"]
 
-    tests = determine_tests_to_run(candidates, ignore_paths, filter_="a/b/c")
+    tests = filter_test_candidates(candidates, ignore_paths, filter_="a/b/c")
     assert tests == ["a/b/c"]
