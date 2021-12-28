@@ -60,12 +60,13 @@ def run(
     filter_: Optional[str],
     branch: str,
 ) -> None:
-    changed_files = get_changed_files(branch)
+    changed_source_files, changed_test_files = get_changed_files(branch)
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
     )
     files_to_test = determine_tests_to_run(
-        changed_files,
+        changed_source_files,
+        changed_test_files,
         source_dependency_graph,
         tests_dependency_graph,
         depth,
@@ -130,10 +131,11 @@ def preview(
 
     for file in source_dependency_graph:
         files_to_test = determine_tests_to_run(
-            ([file], []),  # TODO(cdkini): Clean this up!
-            source_dependency_graph,
-            tests_dependency_graph,
-            depth,
+            changed_source_files=[file],
+            changed_test_files=[],
+            source_dependency_graph=source_dependency_graph,
+            tests_dependency_graph=tests_dependency_graph,
+            depth=depth,
             ignore_paths=[],
             filter_=None,
         )

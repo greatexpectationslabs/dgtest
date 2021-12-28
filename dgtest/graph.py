@@ -3,7 +3,8 @@ from typing import Dict, List, Optional, Set, Tuple
 
 
 def determine_tests_to_run(
-    changed_files: Tuple[List[str], List[str]],
+    changed_source_files: List[str],
+    changed_test_files: List[str],
     source_dependency_graph: Dict[str, Set[str]],
     tests_dependency_graph: Dict[str, Set[str]],
     depth: int,
@@ -11,7 +12,6 @@ def determine_tests_to_run(
     filter_: Optional[str],
 ) -> List[str]:
     # Identify which source files are relevant to the current commit
-    changed_source_files, changed_test_files = changed_files
     relevant_source_files = determine_relevant_source_files(
         source_dependency_graph, changed_source_files, depth
     )
