@@ -87,7 +87,7 @@ def filter_test_candidates(
 def prettify_graphs(*graphs: Tuple[str, Dict[str, Set[str]]]) -> str:
     prettified_graphs = []
     for title, data in graphs:
-        prettified_graph = {title: {k: list(v) for k, v in data.items()}}
+        prettified_graph = {title: {k: sorted(v) for k, v in data.items()}}
         prettified_graphs.append(prettified_graph)
 
     output = json.dumps(prettified_graphs, sort_keys=True, indent=2)
