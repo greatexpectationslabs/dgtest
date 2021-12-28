@@ -17,7 +17,6 @@ def cli() -> None:
     "-t",
     "--tests",
     "tests",
-    default="tests",
     help="The relative path to your tests directory (if applicable)",
     type=click.Path(exists=True),
 )
@@ -83,7 +82,6 @@ def run(
     "-t",
     "--tests",
     "tests",
-    default="tests",
     help="The relative path to your tests directory (if applicable)",
     type=click.Path(exists=True),
 )
@@ -100,4 +98,5 @@ def graph(
         ("Source Dependency Graph", source_dependency_graph),
         ("Tests Dependency Graph", tests_dependency_graph),
     )
+
     print(stringified_graph)
