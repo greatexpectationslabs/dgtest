@@ -15,29 +15,23 @@ from dgtest.parse import (
 
 
 @pytest.fixture(scope="session")
-def pinned_release() -> str:
-    # Release 0.13.49 - https://github.com/great-expectations/great_expectations/commit/a1f42adeb54902d696a8ac73a20ae6f7c39ad16f
-    return "a1f42adeb54902d696a8ac73a20ae6f7c39ad16f"
-
-
-@pytest.fixture(scope="session")
-def great_expectations(tmpdir_factory: Any, pinned_release: str) -> Tuple[str, str]:
+def great_expectations(tmpdir_factory: Any) -> Tuple[str, str]:
     directory = tmpdir_factory.mktemp("tmp")
     destination = directory.mkdir("great_expectations").strpath
     repo = git.Repo.clone_from(
         "https://github.com/great-expectations/great_expectations",
         destination,
-        no_checkout=True,
-        depth=1,
     )
-    repo.git.checkout(pinned_release)
+    repo.git.checkout(
+        "0.13.49"
+    )  # Pinning to a particular release to be consistent between runs
 
     source = os.path.join(destination, "great_expectations")
     tests = os.path.join(destination, "tests")
     return source, tests
 
 
-def test_great_expectations(great_expectations: Tuple[str, str]) -> None:
+def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None:
     # 1. Gather all source/test files from the GE repo for later use ===================================================
 
     source, tests = great_expectations
