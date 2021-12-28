@@ -60,7 +60,6 @@ def run(
     filter_: Optional[str],
     branch: str,
 ) -> None:
-    print(ignore_paths)
     changed_source_files, changed_test_files = get_changed_files(branch)
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
