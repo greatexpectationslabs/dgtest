@@ -8,7 +8,7 @@ def determine_tests_to_run(
     source_dependency_graph: Dict[str, Set[str]],
     tests_dependency_graph: Dict[str, Set[str]],
     depth: int,
-    ignore_paths: List[str],
+    ignore_paths: Tuple[str],
     filter_: Optional[str],
 ) -> List[str]:
     # Identify which source files are relevant to the current commit
@@ -70,7 +70,7 @@ def determine_test_candidates(
 
 
 def filter_test_candidates(
-    test_candidates: List[str], ignore_paths: List[str], filter_: Optional[str] = None
+    test_candidates: List[str], ignore_paths: Tuple[str], filter_: Optional[str] = None
 ) -> List[str]:
     filtered_tests = []
     for file in test_candidates:

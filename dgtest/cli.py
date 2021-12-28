@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional, Tuple
 
 import click
 
@@ -33,8 +33,8 @@ def cli() -> None:
     "--ignore",
     "ignore_paths",
     help="Exclude results that begin with any provided path prefix",
-    default=[],
-    type=list,
+    type=click.Path(),
+    multiple=True,
 )
 @click.option(
     "-f",
@@ -56,10 +56,11 @@ def run(
     source: str,
     tests: Optional[str],
     depth: int,
-    ignore_paths: List[str],
+    ignore_paths: Tuple[str],
     filter_: Optional[str],
     branch: str,
 ) -> None:
+    print(ignore_paths)
     changed_source_files, changed_test_files = get_changed_files(branch)
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
