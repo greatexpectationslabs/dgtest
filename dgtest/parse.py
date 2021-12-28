@@ -63,11 +63,12 @@ def parse_definition_nodes_from_file(file: str) -> DefaultDict[str, Set[str]]:
 
 def parse_import_nodes_from_codebase(
     files: List[str], source: str, definition_map: Dict[str, Set[str]]
-) -> Dict[str, Set[str]]:
-    imports: Dict[str, Set[str]] = {}
+) -> DefaultDict[str, Set[str]]:
+    imports: DefaultDict[str, Set[str]] = defaultdict(set)
     for file in files:
         file_imports = parse_import_nodes_from_file(file, source, definition_map)
-        imports[file] = file_imports
+        for import_ in file_imports:
+            imports[import_].add(file)
     return imports
 
 

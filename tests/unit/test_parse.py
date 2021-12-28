@@ -210,16 +210,18 @@ from my_package.core.util import my_second_func, my_third_func
         "my_dir", ("my_file1.py", file_contents1), ("my_file2.py", file_contents2)
     )
     imports = parse_import_nodes_from_codebase(my_files, "my_package", definition_map)
+    print(imports)
 
-    assert len(imports) == 2
-    assert imports[my_files[0]] == {
+    assert len(imports) == 3
+    keys = [
         "my_package/util/file.py",
-        "my_package/core/my_class.py",
-    }
-    assert imports[my_files[1]] == {
         "my_package/core/util.py",
         "my_package/core/my_class.py",
-    }
+    ]
+    assert all(file in imports for file in keys)
+    assert len(imports["my_package/util/file.py"]) == 1  # Only imported by my_file1
+    assert len(imports["my_package/core/util.py"]) == 1  # Only imported by my_file2
+    assert len(imports["my_package/core/my_class.py"]) == 2  # Imported in both files
 
 
 def test_parse_pytest_fixtures_from_file_with_simple_fixtures(
