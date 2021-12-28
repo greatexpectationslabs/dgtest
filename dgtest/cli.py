@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import List, Optional
 
 import click
@@ -17,6 +18,7 @@ def cli() -> None:
     "-t",
     "--tests",
     "tests",
+    default="tests",
     help="The relative path to your tests directory (if applicable)",
     type=click.Path(exists=True),
 )
@@ -51,13 +53,6 @@ def cli() -> None:
     default="origin/develop",
     type=str,
 )
-@click.option(
-    "-o",
-    "--output",
-    "output",
-    help="Where you'd like to write the results to",
-    type=click.Path(),
-)
 @click.argument("source", type=click.Path(exists=True))
 def run(
     source: str,
@@ -66,7 +61,6 @@ def run(
     ignore_paths: List[str],
     filter_: Optional[str],
     branch: str,
-    output: Optional[str],
 ) -> None:
     changed_files = get_changed_files(branch)
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
@@ -83,3 +77,25 @@ def run(
 
     for file in files_to_test:
         click.echo(file)
+
+
+@cli.command(help="Generate dependency graphs")
+@click.option(
+    "-t",
+    "--tests",
+    "tests",
+    default="tests",
+    help="The relative path to your tests directory (if applicable)",
+    type=click.Path(exists=True),
+)
+@click.argument("source", type=click.Path(exists=True))
+def graph(
+    source: str,
+    tests: Optional[str],
+) -> None:
+    source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
+        source, tests
+    )
+
+    pprint(source_dependency_graph)
+    pprint(tests_dependency_graph)

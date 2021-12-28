@@ -1,8 +1,11 @@
 import glob
+import logging
 import pathlib
 from typing import List, Optional, Tuple
 
 import git
+
+logger = logging.getLogger(__name__)
 
 
 def get_changed_files(branch: str) -> Tuple[List[str], List[str]]:
@@ -22,8 +25,12 @@ def retrieve_all_source_files(source: str) -> List[str]:
 
 def retrieve_all_test_files(source: str, tests: Optional[str] = None) -> List[str]:
     all_files = _retrieve_all_py_files(source)
-    if tests:
-        all_files += _retrieve_all_py_files(tests)
+    if tests is not None:
+        path = pathlib.Path(tests)
+        if not path.exists():
+            logger.warn(f"Test directory '{tests}' was not found; skipping analysis")
+        else:
+            all_files += _retrieve_all_py_files(tests)
 
     test_files = _filter_test_files(all_files)
     return test_files
