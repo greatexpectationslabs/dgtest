@@ -11,6 +11,21 @@ def determine_tests_to_run(
     ignore_paths: Tuple[str],
     filter_: Optional[str],
 ) -> List[str]:
+    """Wrapper method that encapsulates all graph traversal behavior.
+
+    Args:
+        changed_source_files: A collection of source files that are relevant to the current commit/PR
+        changed_test_files: A colleciton of test files that are relevant to the current commit/PR
+        source_dependency_graph: A mapping between source files and the other source files that import it (see `parse_import_nodes_from_codebase`)
+        tests_dependency_graph: A mapping between source files and the relevant test files needed to gain coverage (see `parse_pytest_tests_from_codebase`)
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+
+    Returns:
+        A finalized list of tests that are necessary to obtain coverage over the changed source/test files
+
+    """
     # Identify which source files are relevant to the current commit
     relevant_source_files = determine_relevant_source_files(
         source_dependency_graph, changed_source_files, depth
@@ -32,6 +47,17 @@ def determine_relevant_source_files(
     changed_source_files: List[str],
     depth: int,
 ) -> List[str]:
+    """Determines which source files should be evaluated by the dependency graph traversal algorithm
+
+    Args:
+        source_dependency_graph: A mapping between source files and the other source files that import it (see `parse_import_nodes_from_codebase`)
+        changed_source_files: A collection of source files that are relevant to the current commit/PR
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+
+    Returns:
+        A list of relevant source files
+
+    """
     relevant_source_files: Set[str] = set()
     for file in changed_source_files:
         deps = _traverse_graph(file, source_dependency_graph, depth)
@@ -57,13 +83,24 @@ def _traverse_graph(root: str, graph: Dict[str, Set[str]], depth: int) -> Set[st
 
 def determine_test_candidates(
     tests_dependency_graph: Dict[str, Set[str]],
-    source_files: List[str],
+    relevant_source_files: List[str],
     changed_test_files: List[str],
 ) -> List[str]:
+    """Determines a list of test files that should be run to cover a set of changed source files
+
+    Args:
+        tests_dependency_graph: A mapping between source files and the relevant test files needed to gain coverage (see `parse_pytest_tests_from_codebase`)
+        relevant_source_files: The output list of source files determined by `determine_relevant_source_files`
+        changed_test_files: A colleciton of test files that are relevant to the current commit/PR
+
+    Returns:
+        A list of test file candidates that will possibly be part of the final output
+
+    """
     # Ensure we include any test files that were identified in the git diff
     candidates = {file for file in changed_test_files}
 
-    for file in source_files:
+    for file in relevant_source_files:
         for test in tests_dependency_graph.get(file, []):
             candidates.add(test)
     return sorted(candidates)
@@ -72,6 +109,17 @@ def determine_test_candidates(
 def filter_test_candidates(
     test_candidates: List[str], ignore_paths: Tuple[str], filter_: Optional[str] = None
 ) -> List[str]:
+    """Filters a series of test candidates down to the final output
+
+    Args:
+        tests_candidates: The output list of test files determined by `filter_test_candidates`
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+
+    Returns:
+        The final list of tests to be run. This is the end result of the full dgtest algorithm.
+
+    """
     filtered_tests = []
     for file in test_candidates:
         # Throw out files that are in our ignore list
@@ -85,6 +133,7 @@ def filter_test_candidates(
 
 
 def prettify_graphs(*graphs: Tuple[str, Dict[str, Set[str]]]) -> str:
+    """ A utility to aid with the printing of source/tests dependency graphs """
     prettified_graphs = []
     for title, data in graphs:
         prettified_graph = {title: {k: sorted(v) for k, v in data.items()}}
