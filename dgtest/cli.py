@@ -1,9 +1,8 @@
-from pprint import pprint
 from typing import List, Optional
 
 import click
 
-from dgtest.graph import determine_tests_to_run
+from dgtest.graph import determine_tests_to_run, prettify_graphs
 from dgtest.parse import get_dependency_graphs
 from dgtest.utils import get_changed_files
 
@@ -79,7 +78,7 @@ def run(
         click.echo(file)
 
 
-@cli.command(help="Generate dependency graphs")
+@cli.command(help="Print dependency graphs")
 @click.option(
     "-t",
     "--tests",
@@ -97,5 +96,8 @@ def graph(
         source, tests
     )
 
-    pprint(source_dependency_graph)
-    pprint(tests_dependency_graph)
+    stringified_graph = prettify_graphs(
+        ("Source Dependency Graph", source_dependency_graph),
+        ("Tests Dependency Graph", tests_dependency_graph),
+    )
+    print(stringified_graph)
