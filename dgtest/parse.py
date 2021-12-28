@@ -12,6 +12,20 @@ Import = namedtuple("Import", ["source", "module", "name", "alias"])
 def get_dependency_graphs(
     source: str, tests: Optional[str]
 ) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+    """Wrapper method that encapsulates all parsing behavior.
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+
+    Returns:
+        Two dependency graphs:
+        * The first is a mapping between source file and any files that rely on it as a dependency.
+          Using this, we can answer which files we need to investigate if a given file changes.
+        * The second is a mapping between source file and test files.
+          Using this, we can answer which testse we need to run to gain coverage over a given source file.
+
+    """
     # Identify relevant files for later steps
     source_files = retrieve_all_source_files(source)
     test_files = retrieve_all_test_files(source, tests)
@@ -34,9 +48,21 @@ def get_dependency_graphs(
 # Parse function/class definitions =====================================================================================
 
 
-def parse_definition_nodes_from_codebase(files: List[str]) -> Dict[str, Set[str]]:
+def parse_definition_nodes_from_codebase(
+    source_files: List[str],
+) -> Dict[str, Set[str]]:
+    """Utility to parse all class/function definitions from a given codebase
+
+    Args:
+        source_files: A list of files from the codebase
+
+    Returns:
+        A mapping between class/function definition and the origin of that symbol.
+        Using this, one can immediately tell where to look when encountering a class instance or method invokation.
+
+    """
     definition_map: Dict[str, Set[str]] = {}
-    for file in files:
+    for file in source_files:
         file_definition_map = parse_definition_nodes_from_file(file)
         update_dict(definition_map, file_definition_map)
     return definition_map
@@ -62,14 +88,26 @@ def parse_definition_nodes_from_file(file: str) -> DefaultDict[str, Set[str]]:
 
 
 def parse_import_nodes_from_codebase(
-    files: List[str], source: str, definition_map: Dict[str, Set[str]]
+    source_files: List[str], source: str, definition_map: Dict[str, Set[str]]
 ) -> DefaultDict[str, Set[str]]:
-    imports: DefaultDict[str, Set[str]] = defaultdict(set)
-    for file in files:
+    """Utility to parse all relative import statements from a given codebase.
+
+    Args:
+        source_files: A list of files from the codebase
+        source: The prefix of source files
+        definition_map: An association between function/class definition and its origin (see `parse_definition_nodes_from_codebase`)
+
+    Returns:
+        A mapping between a function/class and where it is used.
+        Using this, one can immediately tell where a particular symbol is used in the codebase.
+
+    """
+    imports_map: DefaultDict[str, Set[str]] = defaultdict(set)
+    for file in source_files:
         file_imports = parse_import_nodes_from_file(file, source, definition_map)
         for import_ in file_imports:
-            imports[import_].add(file)
-    return imports
+            imports_map[import_].add(file)
+    return imports_map
 
 
 def parse_import_nodes_from_file(
@@ -131,6 +169,17 @@ def _generate_path_from_import_node(
 def parse_pytest_fixtures_from_codebase(
     test_files: List[str], definition_map: Dict[str, Set[str]]
 ) -> Dict[str, Set[str]]:
+    """Utility to parse all pytest fixtures from a codebase.
+
+    Args:
+        test_files: A list of files containing pytest tests/fixtures
+        definition_map: An association between function/class definition and its origin (see `parse_definition_nodes_from_codebase`)
+
+    Returns:
+        A mapping between a pytest fixture and the source code dependencies of that fixture.
+        Using this, one can immediately determine what additional dependencies a test has based on the presence of a fixture.
+
+    """
     fixture_map: Dict[str, Set[str]] = {}
     for file in test_files:
         path = pathlib.Path(file)
@@ -199,6 +248,19 @@ def parse_pytest_tests_from_codebase(
     definition_map: Dict[str, Set[str]],
     fixture_map: Dict[str, Set[str]],
 ) -> Dict[str, Set[str]]:
+    """Utility to parse all pytest tests from a codebase.
+
+    Args:
+        test_files: A list of files containing pytest tests/fixtures
+        source: The prefix of source files
+        definition_map: An association between function/class definition and its origin (see `parse_definition_nodes_from_codebase`)
+        fixture_map: An association between fixtures and the dependencies of that given fixture (see `parse_pytest_fixtures_from_codebase`)
+
+    Returns:
+        A mapping between source file and the relevant tests associated with that file.
+        Using this, one can immediately determine which tests are necessary to run to obtain full coverage over a given source file.
+
+    """
     tests_dependency_graph: Dict[str, Set[str]] = {}
     for file in test_files:
         path = pathlib.Path(file)
@@ -242,6 +304,7 @@ def parse_pytest_tests_from_file(
 
 
 def update_dict(A: Dict[str, Set[str]], B: Dict[str, Set[str]]) -> None:
+    """Utility to update the items of dict A with those of B (without overlapping or overwriting)"""
     for key, val in A.items():
         if key in B:
             A[key] = val.union(B[key])

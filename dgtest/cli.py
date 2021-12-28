@@ -60,6 +60,20 @@ def run(
     filter_: Optional[str],
     branch: str,
 ) -> None:
+    """Command used to run dependency graph test strategy on a target codebase.
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The specific branch to diff against to determine changed files
+
+    Returns:
+        Prints a list of '\n'-delimited test file names
+
+    """
     changed_source_files, changed_test_files = get_changed_files(branch)
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
@@ -91,6 +105,16 @@ def graph(
     source: str,
     tests: Optional[str],
 ) -> None:
+    """Command used to print out source/test dependency graphs to STDOUT
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+
+    Returns:
+        Prints a formatted, prettified version of the source and tests dependency graphs
+
+    """
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
     )
