@@ -5,13 +5,13 @@ from typing import Any, Tuple
 import git
 import pytest
 
+from dgtest.fs import retrieve_all_source_files, retrieve_all_test_files
 from dgtest.parse import (
     parse_definition_nodes_from_codebase,
     parse_import_nodes_from_codebase,
     parse_pytest_fixtures_from_codebase,
     parse_pytest_tests_from_codebase,
 )
-from dgtest.utils import retrieve_all_source_files, retrieve_all_test_files
 
 
 @pytest.fixture(scope="session")
