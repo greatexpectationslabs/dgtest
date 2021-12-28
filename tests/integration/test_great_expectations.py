@@ -115,19 +115,17 @@ def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None
     dependency_graph = parse_import_nodes_from_codebase(
         source_files, "great_expectations", definition_map
     )
-    assert len(dependency_graph) == 416
+    assert len(dependency_graph) == 194
 
-    # Selecting registry.py an an example of proper dependency linking
-    standard_node = os.path.join(source, "expectations/registry.py")
+    # Selecting sqlalchemy_batch_data.py an an example of proper dependency linking
+    standard_node = os.path.join(source, "execution_engine/sqlalchemy_batch_data.py")
     assert dependency_graph[standard_node] == {
-        os.path.join(source, "core/id_dict.py"),
-        os.path.join(source, "core/metric.py"),
-        os.path.join(source, "validator/metric_configuration.py"),
+        os.path.join(source, "execution_engine/sqlalchemy_execution_engine.py"),
+        os.path.join(
+            source, "expectations/metrics/table_metrics/table_column_types.py"
+        ),
+        os.path.join(source, "self_check/util.py"),
     }
-
-    # No file relies on the functions/classes defined in exceptions.py
-    orphaned_node = os.path.join(source, "render/exceptions.py")
-    assert dependency_graph[orphaned_node] == set()
 
     # 4. Parse all pytest fixtures in conftests ========================================================================
 
