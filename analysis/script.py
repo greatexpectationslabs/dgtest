@@ -120,17 +120,13 @@ def _retrieve_logs(run: AzureRun) -> None:
 
 
 def get_deviations_between_pipelines():
-    dependency_graph_runs = collect_azure_runs(8, {})
-    great_expectations_runs = collect_azure_runs(1, {})
-
-    all_runs = dependency_graph_runs + great_expectations_runs
+    all_runs = collect_azure_runs(8, {}) + collect_azure_runs(1, {})
     run_results = defaultdict(list)
     deviations = []
 
     for run in all_runs:
-        run_results[run.name].append(run.result)
-
         results = run_results[run.name]
+        results.append(run.result)
         if len(results) == 2 and results[0] != results[1]:
             deviations.append(run)
 
