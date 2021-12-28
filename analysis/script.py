@@ -120,9 +120,8 @@ def _retrieve_logs(run: AzureRun) -> None:
 
 
 def get_deviations_between_pipelines():
-    seen = set()
-    dependency_graph_runs = collect_azure_runs(8, seen)
-    great_expectations_runs = collect_azure_runs(1, seen)
+    dependency_graph_runs = collect_azure_runs(8, {})
+    great_expectations_runs = collect_azure_runs(1, {})
 
     all_runs = dependency_graph_runs + great_expectations_runs
     run_results = defaultdict(list)
@@ -135,9 +134,16 @@ def get_deviations_between_pipelines():
         if len(results) == 2 and results[0] != results[1]:
             deviations.append(run)
 
-    print("Deviations:")
-    for run in deviations:
-        print(run.id, run.name, run.timestamp)
+    with open("deviations.csv", "r") as f:
+        seen = set(e.split(",")[0] for e in f.readlines())
+
+    with open("deviations.csv", "a") as f:
+        print("Deviations:")
+        for run in deviations:
+            if run.id in seen:
+                continue
+            print(run.id, run.name, run.timestamp)
+            f.write(f"{run}\n")
 
 
 def main():
