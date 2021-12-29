@@ -23,7 +23,7 @@ def temporary_directory(tmpdir_factory: Any) -> Any:
 
 
 @pytest.fixture(scope="session")
-def remove_temp_dir_path_prefix(temporary_directory: Any) -> Callable:
+def remove_tmpdir_path_prefix(temporary_directory: Any) -> Callable:
     """
     Since tmpdir and tmpdir_factory create really long path prefixes, this utility
     cleans strings to be more human-readable.
@@ -38,22 +38,24 @@ def remove_temp_dir_path_prefix(temporary_directory: Any) -> Callable:
 
 
 @pytest.fixture(scope="session")
-def clean_graph(remove_temp_dir_path_prefix: Callable) -> Callable:
+def clean_dictionary_of_tmpdir_prefix(remove_tmpdir_path_prefix: Callable) -> Callable:
     """
     Cleans a given dependency graph to make it more human-readable. The output
     should resemble what a user would see if they ran dgtest in the root of
     the great_expectations repo.
     """
 
-    def _clean_graph(graph: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
+    def _clean_dictionary_of_tmpdir_prefix(
+        graph: Dict[str, Set[str]]
+    ) -> Dict[str, Set[str]]:
         cleaned_graph = {}
         for key, value in graph.items():
-            cleaned_key = remove_temp_dir_path_prefix(key)
-            cleaned_value = {remove_temp_dir_path_prefix(v) for v in value}
+            cleaned_key = remove_tmpdir_path_prefix(key)
+            cleaned_value = {remove_tmpdir_path_prefix(v) for v in value}
             cleaned_graph[cleaned_key] = cleaned_value
         return cleaned_graph
 
-    return _clean_graph
+    return _clean_dictionary_of_tmpdir_prefix
 
 
 @pytest.fixture(scope="session")
@@ -82,7 +84,11 @@ def great_expectations(temporary_directory: Any) -> Tuple[str, str]:
     return source, tests
 
 
-def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None:
+def test_great_expectations_parsing(
+    great_expectations: Tuple[str, str],
+    clean_dictionary_of_tmpdir_prefix: Callable,
+    snapshot: Any,
+) -> None:
     # 1. Gather all source/test files from the GE repo for later use ===================================================
 
     source, tests = great_expectations
@@ -100,66 +106,8 @@ def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None
 
     definition_map = parse_definition_nodes_from_codebase(source_files)
     assert len(definition_map) == 1099
-
-    classes_with_namspace_collisions = [
-        "BaseUpgradeHelper",
-        "BatchMarkers",
-        "DatasourceTypes",
-        "Email",
-        "Mark",
-        "MetaPandasDataset",
-        "Profiler",
-        "SuiteEditNotebookRenderer",
-        "SupportedDatabases",
-        "UpgradeHelperV11",
-        "UpgradeHelperV13",
-        "Validator",
-    ]
-    assert all(
-        len(definition_map[class_]) > 1 for class_ in classes_with_namspace_collisions
-    )
-
-    funcs_with_namespace_collisions = [
-        "build_docs",
-        "checkpoint",
-        "checkpoint_list",
-        "checkpoint_new",
-        "checkpoint_run",
-        "checkpoint_script",
-        "cli",
-        "cli_colorize_string",
-        "cli_message",
-        "cli_message_dict",
-        "cli_message_list",
-        "datasource",
-        "datasource_list",
-        "datasource_new",
-        "delete_checkpoint",
-        "delete_datasource",
-        "docs",
-        "docs_build",
-        "docs_list",
-        "init",
-        "load_checkpoint",
-        "load_data_context_with_error_handling",
-        "load_expectation_suite",
-        "main",
-        "parse_result_format",
-        "run_checkpoint",
-        "select_datasource",
-        "send_usage_message",
-        "store",
-        "store_list",
-        "suite",
-        "suite_delete",
-        "suite_demo",
-        "suite_edit",
-        "suite_list",
-        "suite_new",
-    ]
-    assert all(
-        len(definition_map[func]) > 1 for func in funcs_with_namespace_collisions
-    )
+    cleaned_definition_map = clean_dictionary_of_tmpdir_prefix(definition_map)
+    snapshot.assert_match(cleaned_definition_map)
 
     # 3. Parse all import statements in source files to create a dependency graph ======================================
 
@@ -167,27 +115,16 @@ def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None
         source_files, "great_expectations", definition_map
     )
     assert len(dependency_graph) == 194
-
-    # Selecting sqlalchemy_batch_data.py an an example of proper dependency linking
-    standard_node = os.path.join(source, "execution_engine/sqlalchemy_batch_data.py")
-    assert dependency_graph[standard_node] == {
-        os.path.join(source, "execution_engine/sqlalchemy_execution_engine.py"),
-        os.path.join(
-            source, "expectations/metrics/table_metrics/table_column_types.py"
-        ),
-        os.path.join(source, "self_check/util.py"),
-    }
+    cleaned_dependency_graph = clean_dictionary_of_tmpdir_prefix(dependency_graph)
+    snapshot.assert_match(cleaned_dependency_graph)
 
     # 4. Parse all pytest fixtures in conftests ========================================================================
 
     fixture_map = parse_pytest_fixtures_from_codebase(test_files, definition_map)
 
     assert len(fixture_map) == 116
-    assert len(fixture_map["spark_session"]) == 2
-    assert all(
-        os.path.join(source, source_file) in fixture_map["spark_session"]
-        for source_file in ("core/util.py", "dataset/sparkdf_dataset.py")
-    )
+    cleaned_fixture_map = clean_dictionary_of_tmpdir_prefix(fixture_map)
+    snapshot.assert_match(cleaned_fixture_map)
 
     # 5. Parse all pytest tests in test files ==========================================================================
 
@@ -196,64 +133,52 @@ def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None
     )
 
     assert len(tests_dependency_graph) == 163
-    for test_sets in tests_dependency_graph.values():
-        assert all(Path(file).stem.startswith("test_") for file in test_sets)
-
-    usage_statistics_path = os.path.join(
-        source, "core/usage_statistics/usage_statistics.py"
+    cleaned_tests_dependency_graph = clean_dictionary_of_tmpdir_prefix(
+        tests_dependency_graph
     )
-    usage_statistics_tests = tests_dependency_graph[usage_statistics_path]
-    assert len(usage_statistics_tests) == 4
-    assert all(
-        Path(test_file).stem
-        in (
-            "test_usage_statistics",
-            "test_usage_statistics_handler_methods",
-            "test_util",
-            "test_expectation_arguments",
-        )
-        for test_file in usage_statistics_tests
-    )
-
-
-def test_great_expectations_dependency_graphs(
-    great_expectations: Tuple[str, str], snapshot: Any, clean_graph: Callable
-) -> None:
-    source, tests = great_expectations
-    source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
-        source, tests
-    )
-
-    assert len(source_dependency_graph) == 194
-    cleaned_source_dependency_graph = clean_graph(source_dependency_graph)
-    snapshot.assert_match(cleaned_source_dependency_graph)
-
-    assert len(tests_dependency_graph) == 163
-    cleaned_tests_dependency_graph = clean_graph(tests_dependency_graph)
     snapshot.assert_match(cleaned_tests_dependency_graph)
 
 
 def test_great_expectations_determine_tests_to_run_depth(
-    great_expectations: Tuple[str, str], snapshot: Any, clean_graph: Callable
+    great_expectations: Tuple[str, str],
+    snapshot: Any,
+    clean_dictionary_of_tmpdir_prefix: Callable,
 ) -> None:
     source, tests = great_expectations
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
     )
 
-    files_to_test = {}
+    # Clean dependency graphs to remove any tmpdir prefixes
+    cleaned_source_dependency_graph = clean_dictionary_of_tmpdir_prefix(
+        source_dependency_graph
+    )
+    cleaned_tests_dependency_graph = clean_dictionary_of_tmpdir_prefix(
+        tests_dependency_graph
+    )
 
-    for source_file in source_dependency_graph:
-        relevant_tests = determine_tests_to_run(
-            [source_file],
-            [],
-            source_dependency_graph,
-            tests_dependency_graph,
-            depth=2,
-            ignore_paths=[],
-            filter_=None,
-        )
-        files_to_test[source_file] = relevant_tests
+    # Create a mock commit (these are the files we identify through our git diff)
+    changed_source_files = [
+        "great_expectations/render/renderer/microsoft_teams_renderer.py",
+        "great_expectations/data_asset/data_asset.py",
+        "great_expectations/rule_based_profiler/rule/rule.py",
+    ]
+    changed_test_files = [
+        "tests/datasource/data_connector/test_inferred_asset_dbfs_data_connector.py",
+        "tests/execution_engine/test_sparkdf_execution_engine.py",
+        "tests/data_context/store/test_configuration_store.py",
+    ]
 
-    cleaned_files_to_test = clean_graph(files_to_test)
-    snapshot.assert_match(cleaned_files_to_test)
+    # Pretend each file is a separate change or commit and see what the output is
+    relevant_tests = determine_tests_to_run(
+        changed_source_files,
+        changed_test_files,
+        cleaned_source_dependency_graph,
+        cleaned_tests_dependency_graph,
+        depth=2,
+        ignore_paths=[],
+        filter_=None,
+    )
+
+    assert len(relevant_tests) == 146
+    snapshot.assert_match(relevant_tests)
