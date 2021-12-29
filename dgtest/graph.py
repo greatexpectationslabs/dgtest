@@ -133,7 +133,7 @@ def filter_test_candidates(
 
 
 def prettify_graphs(*graphs: Tuple[str, Dict[str, Set[str]]]) -> str:
-    """ A utility to aid with the printing of source/tests dependency graphs """
+    """A utility to aid with the printing of source/tests dependency graphs"""
     prettified_graphs = []
     for title, data in graphs:
         prettified_graph = {title: {k: sorted(v) for k, v in data.items()}}
