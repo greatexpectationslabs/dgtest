@@ -24,6 +24,10 @@ def temporary_directory(tmpdir_factory: Any) -> Any:
 
 @pytest.fixture(scope="session")
 def remove_temp_dir_path_prefix(temporary_directory: Any) -> Callable:
+    """
+    Since tmpdir and tmpdir_factory create really long path prefixes, this utility
+    cleans strings to be more human-readable.
+    """
     temp_dir_path = temporary_directory.strpath
 
     def _remove_temp_dir_path_prefix(path: str) -> str:
@@ -35,6 +39,12 @@ def remove_temp_dir_path_prefix(temporary_directory: Any) -> Callable:
 
 @pytest.fixture(scope="session")
 def clean_graph(remove_temp_dir_path_prefix: Callable) -> Callable:
+    """
+    Cleans a given dependency graph to make it more human-readable. The output
+    should resemble what a user would see if they ran dgtest in the root of
+    the great_expectations repo.
+    """
+
     def _clean_graph(graph: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
         cleaned_graph = {}
         for key, value in graph.items():
@@ -48,6 +58,12 @@ def clean_graph(remove_temp_dir_path_prefix: Callable) -> Callable:
 
 @pytest.fixture(scope="session")
 def great_expectations(temporary_directory: Any) -> Tuple[str, str]:
+    """
+    Clone GE v0.13.49 into a temporary directory so we can run our integration tests
+    on a real example.
+
+    TODO: Improve performance!
+    """
     directory = temporary_directory
     destination = directory.mkdir("great_expectations").strpath
     repo = git.Repo.clone_from(
@@ -207,17 +223,17 @@ def test_great_expectations_dependency_graphs(
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
     )
-    assert len(source_dependency_graph) == 194
-    assert len(tests_dependency_graph) == 163
 
+    assert len(source_dependency_graph) == 194
     cleaned_source_dependency_graph = clean_graph(source_dependency_graph)
     snapshot.assert_match(cleaned_source_dependency_graph)
 
+    assert len(tests_dependency_graph) == 163
     cleaned_tests_dependency_graph = clean_graph(tests_dependency_graph)
     snapshot.assert_match(cleaned_tests_dependency_graph)
 
 
-def test_great_expectations_determine_tests_to_run_depth3(
+def test_great_expectations_determine_tests_to_run_depth(
     great_expectations: Tuple[str, str], snapshot: Any, clean_graph: Callable
 ) -> None:
     source, tests = great_expectations
