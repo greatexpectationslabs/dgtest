@@ -75,7 +75,8 @@ def _traverse_graph(root: str, graph: Dict[str, Set[str]], depth: int) -> Set[st
         if node in seen or d <= 0:
             continue
         seen.add(node)
-        for child in graph.get(node, {}):
+        children: Set[str] = graph.get(node, set())
+        for child in children:
             stack.append((child, d - 1))
 
     return seen
@@ -101,7 +102,8 @@ def determine_test_candidates(
     candidates = {file for file in changed_test_files}
 
     for file in relevant_source_files:
-        for test in tests_dependency_graph.get(file, []):
+        tests: Set[str] = tests_dependency_graph.get(file, set())
+        for test in tests:
             candidates.add(test)
     return sorted(candidates)
 

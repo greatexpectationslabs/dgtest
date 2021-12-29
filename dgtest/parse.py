@@ -295,7 +295,8 @@ def parse_pytest_tests_from_file(
         if isinstance(node, ast.FunctionDef):
             for symbol in node.args.args:
                 arg = symbol.arg
-                for source_file in fixture_map.get(arg, set()):
+                source_files = fixture_map.get(arg, set())
+                for source_file in source_files:
                     file_graph[source_file].add(test_file)
 
     return file_graph
