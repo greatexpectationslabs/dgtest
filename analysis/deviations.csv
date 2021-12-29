@@ -13,3 +13,7 @@
 23973, 20211227.23, great_expectations, succeeded, completed   - NOT A REAL ERROR (renderer test failure due to shared state)
 24022, 20211228.12, great_expectations, succeeded, completed   - NOT A REAL ERROR (renderer test failure due to shared state)
 24038, 20211228.16, great_expectations, succeeded, completed   - NOT A REAL ERROR (renderer test failure due to shared state)
+24299, 20211229.27, great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
+24247, 20211229.14, great_expectations, succeeded, completed   - NOT A REAL ERROR (checkout error)
+24239, 20211229.12, great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
+24220, 20211229.7, great_expectations, failed, completed       - NOT A REAL ERROR (vega CDN issue)
