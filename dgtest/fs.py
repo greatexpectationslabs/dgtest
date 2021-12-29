@@ -63,7 +63,7 @@ def _filter_source_files(files: List[str]) -> List[str]:
         stem = path.stem
         if not (stem == "conftest" or path.stem.startswith("test_")):
             source_files.append(str(path))
-    return source_files
+    return sorted(source_files)
 
 
 def _filter_test_files(files: List[str]) -> List[str]:
@@ -75,7 +75,7 @@ def _filter_test_files(files: List[str]) -> List[str]:
         stem = path.stem
         if stem == "conftest" or stem.startswith("test_"):
             test_files.append(str(path))
-    return test_files
+    return sorted(test_files)
 
 
 def _is_existing_py_file(path: pathlib.Path) -> bool:

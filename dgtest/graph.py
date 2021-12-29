@@ -75,8 +75,9 @@ def _traverse_graph(root: str, graph: Dict[str, Set[str]], depth: int) -> Set[st
         if node in seen or d <= 0:
             continue
         seen.add(node)
-        children: Set[str] = graph.get(node, set())
-        for child in children:
+        # Necessary to sort to maintain idempotency (same path must be taken each time)
+        children = graph.get(node, set())
+        for child in sorted(children):
             stack.append((child, d - 1))
 
     return seen
