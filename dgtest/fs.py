@@ -9,6 +9,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_changed_files(branch: str) -> Tuple[List[str], List[str]]:
+    """Perform `git diff HEAD <branch> --name-only` to retrieve a list of files that have changed in the last commit
+
+    Args:
+        branch: The git branch to diff against
+
+    Returns:
+        A tuple contain changed source files and changed test files.
+        These files must end in .py and should still existing in the current codebase.
+
+    """
     repo = git.Repo()
     diff = repo.git.diff(branch, name_only=True)
     files = [f.strip() for f in diff.split("\n")]
