@@ -68,7 +68,7 @@ def parse_definition_nodes_from_codebase(
     return definition_map
 
 
-def parse_definition_nodes_from_file(file: str) -> DefaultDict[str, Set[str]]:
+def parse_definition_nodes_from_file(file: str) -> Dict[str, Set[str]]:
     with open(file) as f:
         root = ast.parse(f.read(), file)
 
@@ -89,7 +89,7 @@ def parse_definition_nodes_from_file(file: str) -> DefaultDict[str, Set[str]]:
 
 def parse_import_nodes_from_codebase(
     source_files: List[str], source: str, definition_map: Dict[str, Set[str]]
-) -> DefaultDict[str, Set[str]]:
+) -> Dict[str, Set[str]]:
     """Utility to parse all relative import statements from a given codebase.
 
     Args:
@@ -228,7 +228,7 @@ def _gather_fixture_nodes_from_file(file: str) -> List[ast.FunctionDef]:
 
 def _create_associations_between_fixture_and_definitions(
     fixture_node: ast.FunctionDef,
-    fixture_map: DefaultDict[str, Set[str]],
+    fixture_map: Dict[str, Set[str]],
     definition_map: Dict[str, Set[str]],
 ) -> None:
     for child in ast.walk(fixture_node):
@@ -278,7 +278,7 @@ def parse_pytest_tests_from_file(
     source: str,
     definition_map: Dict[str, Set[str]],
     fixture_map: Dict[str, Set[str]],
-) -> DefaultDict[str, Set[str]]:
+) -> Dict[str, Set[str]]:
     # Parse the test file's imports and create associations between source files and test files
     file_graph: DefaultDict[str, Set[str]] = defaultdict(set)
     source_file_paths = parse_import_nodes_from_file(test_file, source, definition_map)
