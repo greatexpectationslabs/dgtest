@@ -17,22 +17,25 @@ from dgtest.parse import (
 
 
 @pytest.fixture(scope="session")
-def temporary_directory(tmpdir_factory: Any) -> Any:
-    directory = tmpdir_factory.mktemp("tmp")
-    return directory
-
-
-@pytest.fixture(scope="session")
-def remove_tmpdir_path_prefix(temporary_directory: Any) -> Callable:
+def remove_tmpdir_path_prefix() -> Callable:
     """
     Since tmpdir and tmpdir_factory create really long path prefixes, this utility
     cleans strings to be more human-readable.
     """
-    temp_dir_path = temporary_directory.strpath
 
     def _remove_temp_dir_path_prefix(path: str) -> str:
-        p = Path(str(os.path.relpath(path, temp_dir_path)))
-        return "/".join(part for part in p.parts[1:])
+        parts = list(Path(path).parts)
+        if len(parts) <= 1:  # Not an actual path so we just exit early
+            return path
+
+        i = len(parts) - 1
+        while i >= 0:
+            curr = parts[i]
+            if curr in ("great_expectations", "tests"):
+                break
+            i -= 1
+
+        return "/".join(part for part in parts[i:])
 
     return _remove_temp_dir_path_prefix
 
@@ -59,14 +62,14 @@ def clean_dictionary_of_tmpdir_prefix(remove_tmpdir_path_prefix: Callable) -> Ca
 
 
 @pytest.fixture(scope="session")
-def great_expectations(temporary_directory: Any) -> Tuple[str, str]:
+def great_expectations(tmpdir_factory: Any) -> Tuple[str, str]:
     """
     Clone GE v0.13.49 into a temporary directory so we can run our integration tests
     on a real example.
 
     TODO: Improve performance!
     """
-    directory = temporary_directory
+    directory = tmpdir_factory.mktemp("tmp")
     destination = directory.mkdir("great_expectations").strpath
     repo = git.Repo.clone_from(
         "https://github.com/great-expectations/great_expectations",
