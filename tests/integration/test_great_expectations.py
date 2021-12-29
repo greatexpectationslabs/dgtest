@@ -1,12 +1,14 @@
 import os
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, Callable, Dict, Set, Tuple
 
 import git
 import pytest
 
 from dgtest.fs import retrieve_all_source_files, retrieve_all_test_files
+from dgtest.graph import determine_tests_to_run
 from dgtest.parse import (
+    get_dependency_graphs,
     parse_definition_nodes_from_codebase,
     parse_import_nodes_from_codebase,
     parse_pytest_fixtures_from_codebase,
@@ -15,16 +17,49 @@ from dgtest.parse import (
 
 
 @pytest.fixture(scope="session")
-def great_expectations(tmpdir_factory: Any) -> Tuple[str, str]:
+def temporary_directory(tmpdir_factory: Any) -> Any:
     directory = tmpdir_factory.mktemp("tmp")
+    return directory
+
+
+@pytest.fixture(scope="session")
+def remove_temp_dir_path_prefix(temporary_directory: Any) -> Callable:
+    temp_dir_path = temporary_directory.strpath
+
+    def _remove_temp_dir_path_prefix(path: str) -> str:
+        p = Path(str(os.path.relpath(path, temp_dir_path)))
+        return "/".join(part for part in p.parts[1:])
+
+    return _remove_temp_dir_path_prefix
+
+
+@pytest.fixture(scope="session")
+def clean_graph(remove_temp_dir_path_prefix: Callable) -> Callable:
+    def _clean_graph(graph: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
+        cleaned_graph = {}
+        for key, value in graph.items():
+            cleaned_key = remove_temp_dir_path_prefix(key)
+            cleaned_value = {remove_temp_dir_path_prefix(v) for v in value}
+            cleaned_graph[cleaned_key] = cleaned_value
+        return cleaned_graph
+
+    return _clean_graph
+
+
+@pytest.fixture(scope="session")
+def great_expectations(temporary_directory: Any) -> Tuple[str, str]:
+    directory = temporary_directory
     destination = directory.mkdir("great_expectations").strpath
     repo = git.Repo.clone_from(
         "https://github.com/great-expectations/great_expectations",
         destination,
+        single_branch=True,
+        branch="main",
+        depth=1,
     )
-    repo.git.checkout(
-        "0.13.49"
-    )  # Pinning to a particular release to be consistent between runs
+
+    # Pinning to a particular release to be consistent between runs
+    repo.git.checkout("0.13.49")
 
     source = os.path.join(destination, "great_expectations")
     tests = os.path.join(destination, "tests")
@@ -163,3 +198,45 @@ def test_great_expectations_parsing(great_expectations: Tuple[str, str]) -> None
         )
         for test_file in usage_statistics_tests
     )
+
+
+def test_great_expectations_dependency_graphs(
+    great_expectations: Tuple[str, str], snapshot: Any, clean_graph: Callable
+) -> None:
+    source, tests = great_expectations
+    source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
+        source, tests
+    )
+    assert len(source_dependency_graph) == 194
+    assert len(tests_dependency_graph) == 163
+
+    cleaned_source_dependency_graph = clean_graph(source_dependency_graph)
+    snapshot.assert_match(cleaned_source_dependency_graph)
+
+    cleaned_tests_dependency_graph = clean_graph(tests_dependency_graph)
+    snapshot.assert_match(cleaned_tests_dependency_graph)
+
+
+def test_great_expectations_determine_tests_to_run_depth3(
+    great_expectations: Tuple[str, str], snapshot: Any, clean_graph: Callable
+) -> None:
+    source, tests = great_expectations
+    source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
+        source, tests
+    )
+
+    files_to_test = {}
+    for source_file in source_dependency_graph:
+        relevant_tests = determine_tests_to_run(
+            [source_file],
+            [],
+            source_dependency_graph,
+            tests_dependency_graph,
+            depth=2,
+            ignore_paths=[],
+            filter_=None,
+        )
+        files_to_test[source_file] = relevant_tests
+
+    cleaned_files_to_test = clean_graph(files_to_test)
+    snapshot.assert_match(cleaned_files_to_test)

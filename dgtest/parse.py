@@ -149,7 +149,8 @@ def _generate_path_from_import_node(
     import_: Import, source: str, definition_map: Dict[str, Set[str]]
 ) -> Optional[str]:
     partial_path = "/".join(m for m in import_.module)
-    if not import_.module or not import_.name or not partial_path.startswith(source):
+    base = pathlib.Path(source).stem
+    if not import_.module or not import_.name or base not in partial_path:
         return None
     key = import_.name[0]
     candidates: Set[str] = definition_map.get(key, set())

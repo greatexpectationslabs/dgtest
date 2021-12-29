@@ -8,7 +8,7 @@ def determine_tests_to_run(
     source_dependency_graph: Dict[str, Set[str]],
     tests_dependency_graph: Dict[str, Set[str]],
     depth: int,
-    ignore_paths: Tuple[str],
+    ignore_paths: List[str],
     filter_: Optional[str],
 ) -> List[str]:
     """Wrapper method that encapsulates all graph traversal behavior.
@@ -107,7 +107,7 @@ def determine_test_candidates(
 
 
 def filter_test_candidates(
-    test_candidates: List[str], ignore_paths: Tuple[str], filter_: Optional[str] = None
+    test_candidates: List[str], ignore_paths: List[str], filter_: Optional[str] = None
 ) -> List[str]:
     """Filters a series of test candidates down to the final output
 
