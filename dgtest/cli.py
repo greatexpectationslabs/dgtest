@@ -48,7 +48,6 @@ def cli() -> None:
     "--branch",
     "branch",
     help="The specific branch to diff against",
-    default="origin/develop",
     type=str,
 )
 @click.argument("source", type=click.Path(exists=True))
@@ -58,7 +57,7 @@ def run(
     depth: int,
     ignore_paths: Tuple[str],
     filter_: Optional[str],
-    branch: str,
+    branch: Optional[str],
 ) -> None:
     """Command used to run dependency graph test strategy on a target codebase.
 
@@ -84,7 +83,7 @@ def run(
         source_dependency_graph,
         tests_dependency_graph,
         depth,
-        ignore_paths,
+        list(ignore_paths),
         filter_,
     )
 

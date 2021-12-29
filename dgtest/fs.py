@@ -8,7 +8,7 @@ import git
 logger = logging.getLogger(__name__)
 
 
-def get_changed_files(branch: str) -> Tuple[List[str], List[str]]:
+def get_changed_files(branch: Optional[str]) -> Tuple[List[str], List[str]]:
     """Perform `git diff HEAD <branch> --name-only` to retrieve a list of files that have changed in the last commit
 
     Args:
@@ -20,8 +20,16 @@ def get_changed_files(branch: str) -> Tuple[List[str], List[str]]:
 
     """
     repo = git.Repo()
-    diff = repo.git.diff(branch, name_only=True)
-    files = [f.strip() for f in diff.split("\n")]
+
+    # Collected any modified files (both staged and unstaged)
+    local_diff = repo.git.diff("HEAD", name_only=True)
+    files = [f.strip() for f in local_diff.split("\n")]
+
+    # Diff against a particular branch (if applicable)
+    if branch:
+        branch_diff = repo.git.diff(branch, name_only=True)
+        files += [f.strip() for f in branch_diff.split("\n") if f not in files]
+
     changed_source_files = _filter_source_files(files)
     changed_test_files = _filter_test_files(files)
     return changed_source_files, changed_test_files
