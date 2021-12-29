@@ -1,2 +1,2 @@
 Click>=7.1.2
-GitPython==3.1.23
+GitPython==3.1.18
