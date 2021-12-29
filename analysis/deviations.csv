@@ -17,3 +17,4 @@
 24247, 20211229.14, great_expectations, succeeded, completed   - NOT A REAL ERROR (checkout error)
 24239, 20211229.12, great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
 24220, 20211229.7, great_expectations, failed, completed       - NOT A REAL ERROR (vega CDN issue)
+24354, 20211229.41, great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
