@@ -124,4 +124,4 @@ def graph(
         ("Tests Dependency Graph", tests_dependency_graph),
     )
 
-    print(stringified_graph)
+    click.echo(stringified_graph)
