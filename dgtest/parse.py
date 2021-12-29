@@ -131,8 +131,10 @@ def _gather_import_nodes_from_file(file: str) -> List[Import]:
 
     imports = []
     for node in root.body:
+        # import great_expectations.x.y.z
         if isinstance(node, ast.Import):
             module: List[str] = []
+        # from great_expectations.x.y import z
         elif isinstance(node, ast.ImportFrom) and node.module is not None:
             module = node.module.split(".")
         else:
@@ -148,10 +150,15 @@ def _gather_import_nodes_from_file(file: str) -> List[Import]:
 def _generate_path_from_import_node(
     import_: Import, source: str, definition_map: Dict[str, Set[str]]
 ) -> Optional[str]:
+    # If adhering to standard Python conventions, import statements generally
+    # match the filesystem -> from great_expectations.x.y.z | great_expectations/x/y/z.py
     partial_path = "/".join(m for m in import_.module)
     base = pathlib.Path(source).stem
+
+    # Filtering to remove blanket imports (i.e. import great_expectations) and any non source-code imports (i.e. standard library)
     if not import_.module or not import_.name or base not in partial_path:
         return None
+
     key = import_.name[0]
     candidates: Set[str] = definition_map.get(key, set())
     if len(candidates) == 0:
@@ -160,6 +167,7 @@ def _generate_path_from_import_node(
         return list(candidates)[0]
     else:
         # If we're not sure of the origin, use the stringified import statement and make an educated guess
+        # Assuming our import statement somewhat mirrors our file system, this accurately picks the right import
         closest = difflib.get_close_matches(partial_path, candidates, n=1, cutoff=0)
         return str(closest[0])
 
@@ -184,6 +192,7 @@ def parse_pytest_fixtures_from_codebase(
     fixture_map: Dict[str, Set[str]] = {}
     for file in test_files:
         path = pathlib.Path(file)
+        # Only fixtures in conftests can be shared amongst multiple files
         if path.stem == "conftest":
             file_fixtures = parse_pytest_fixtures_from_file(file, definition_map)
             update_dict(fixture_map, file_fixtures)
@@ -215,8 +224,10 @@ def _gather_fixture_nodes_from_file(file: str) -> List[ast.FunctionDef]:
     for node in root.body:
         if isinstance(node, ast.FunctionDef):
             for d in node.decorator_list:
+                # @pytest.fixture
                 if isinstance(d, ast.Attribute) and d.attr == "fixture":
                     fixture_nodes.append(node)
+                # @pytest.fixture(scope=...)
                 elif (
                     isinstance(d, ast.Call)
                     and hasattr(d.func, "attr")
@@ -238,6 +249,8 @@ def _create_associations_between_fixture_and_definitions(
                 candidates = definition_map[symbol]
                 for candidate in candidates:
                     fixture_map[fixture_node.name].add(candidate)
+
+    # TODO(cdkini): We currently do not account for nested fixtures. Open to implement!
 
 
 # Parse pytest tests ===================================================================================================

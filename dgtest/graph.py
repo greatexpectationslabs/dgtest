@@ -71,7 +71,7 @@ def _traverse_graph(root: str, graph: Dict[str, Set[str]], depth: int) -> Set[st
 
     while stack:
         node, d = stack.pop()
-        # If we've hit a cycle, traversed past our stated depth, or touched a file that isn't from our source, throw away the node
+        # If we've hit a cycle or traversed past our stated depth, throw away the node
         if node in seen or d <= 0:
             continue
         seen.add(node)
