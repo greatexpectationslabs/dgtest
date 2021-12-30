@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 import click
 
 from dgtest.fs import get_changed_files
-from dgtest.graph import determine_tests_to_run, prettify_graphs
+from dgtest.graph import determine_tests_to_run
 from dgtest.parse import get_dependency_graphs
 
 
@@ -89,38 +89,3 @@ def run(
 
     for file in files_to_test:
         click.echo(file)
-
-
-@cli.command(help="Print dependency graphs")
-@click.option(
-    "-t",
-    "--tests",
-    "tests",
-    help="The relative path to your tests directory (if applicable)",
-    type=click.Path(exists=True),
-)
-@click.argument("source", type=click.Path(exists=True))
-def graph(
-    source: str,
-    tests: Optional[str],
-) -> None:
-    """Command used to print out source/test dependency graphs to STDOUT
-
-    Args:
-        source: The relative path to your source directory
-        tests: The relative path to your tests directory
-
-    Returns:
-        Prints a formatted, prettified version of the source and tests dependency graphs
-
-    """
-    source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
-        source, tests
-    )
-
-    stringified_graph = prettify_graphs(
-        ("Source Dependency Graph", source_dependency_graph),
-        ("Tests Dependency Graph", tests_dependency_graph),
-    )
-
-    click.echo(stringified_graph)

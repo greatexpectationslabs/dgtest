@@ -133,14 +133,3 @@ def filter_test_candidates(
             continue
         filtered_tests.append(file)
     return filtered_tests
-
-
-def prettify_graphs(*graphs: Tuple[str, Dict[str, Set[str]]]) -> str:
-    """A utility to aid with the printing of source/tests dependency graphs"""
-    prettified_graphs = []
-    for title, data in graphs:
-        prettified_graph = {title: {k: sorted(v) for k, v in data.items()}}
-        prettified_graphs.append(prettified_graph)
-
-    output = json.dumps(prettified_graphs, sort_keys=True, indent=2)
-    return output
