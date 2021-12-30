@@ -1,4 +1,3 @@
-import pathlib
 from typing import Callable, Dict, List, Set, Tuple
 
 import py
@@ -9,6 +8,7 @@ from dgtest.parse import (
     parse_definition_nodes_from_file,
     parse_import_nodes_from_codebase,
     parse_import_nodes_from_file,
+    parse_pytest_fixtures_from_codebase,
     parse_pytest_fixtures_from_file,
     parse_pytest_tests_from_codebase,
     parse_pytest_tests_from_file,
@@ -23,7 +23,10 @@ def create_mock_codebase(tmpdir: py.path.local) -> Callable:
     def _create_mock_codebase(
         directory: str, *files: Tuple[str, str]
     ) -> Tuple[str, List[str]]:
+        # Create source and tests directories
         my_dir = tmpdir.mkdir(directory)
+        my_dir.mkdir("tests")
+
         my_files = []
         for name, contents in files:
             temp_file = my_dir.join(name)
@@ -277,6 +280,7 @@ def create_shapes():
 
 
 # FIXME(cdkini): This functionality needs to be enabled!
+
 # def test_parse_pytest_fixtures_from_file_with_fixtures_referencing_each_other(
 #     create_mock_codebase: Callable,
 #     definition_map: Dict[str, Set[str]],
@@ -308,9 +312,34 @@ def create_shapes():
 #     }
 
 
-# TODO(cdkini): Open to write test for this method!
-# def test_parse_pytest_fixtures_from_codebase(tmpdir: py.path.local) -> None:
-#     pass  # TBD
+def test_parse_pytest_fixtures_from_codebase(
+    create_mock_codebase: Callable, definition_map: Dict[str, Set[str]]
+) -> None:
+    file_contents1 = """
+@pytest.fixture
+def create_circle():
+    return Circle()
+
+@pytest.fixture(scope="function")
+def create_triangle():
+    return Triangle()
+    """
+    file_contents2 = """
+@pytest.fixture
+def set_up_strings():
+    return concatenate_strings("hello", "world")
+    """
+
+    _, my_files = create_mock_codebase(
+        "my_dir", ("conftest.py", file_contents1), ("tests/conftest.py", file_contents2)
+    )
+    fixtures = parse_pytest_fixtures_from_codebase(my_files, definition_map)
+
+    assert len(fixtures) == 2
+    print(fixtures.keys())
+    assert all(key in fixtures for key in ("create_triangle", "set_up_strings"))
+    assert fixtures["create_triangle"] == {"my_package/math/geometry.py"}
+    assert fixtures["set_up_strings"] == {"my_package/strings/strings.py"}
 
 
 def test_parse_pytest_tests_from_file_with_imports(
