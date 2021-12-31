@@ -64,6 +64,7 @@ def run_tests(
     )
 
     if len(files_to_test) == 0:
+        print("No tests to run!")
         return 0
 
     exit_code = pytest.main(files_to_test + pytest_opts)

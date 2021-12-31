@@ -96,7 +96,7 @@ def list_command(
     "source",
     type=click.Path(exists=True),
 )
-@click.argument("pytest_args", nargs=-1, type=click.UNPROCESSED)
+@click.argument("pytest_opts", nargs=-1, type=click.UNPROCESSED)
 def run_command(
     source: str,
     tests: Optional[str],
