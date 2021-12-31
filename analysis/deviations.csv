@@ -18,4 +18,5 @@
 24239, 20211229.12, great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
 24220, 20211229.7, great_expectations, failed, completed       - NOT A REAL ERROR (vega CDN issue)
 24354, 20211229.41, great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
-24365, 20211230.1, 2021-12-30T07:40:49.2165217Z, great_expectations, failed, completed
+24365, 20211230.1, great_expectations, failed, completed       - NOT A REAL ERROR (vega CDN issue)
+24373, 20211230.3,  great_expectations, failed, completed      - NOT A REAL ERROR (vega CDN issue)
