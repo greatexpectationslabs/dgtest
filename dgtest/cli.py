@@ -170,7 +170,9 @@ def run_command(
     """
     TODO(cdkini): Write docstr!
     """
-    exit_code = run_tests(
-        source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
+    files_to_test = determine_test_list(
+        source, tests, depth, list(ignore_paths), filter_, branch
     )
+
+    exit_code = run_tests(files_to_test, list(pytest_opts))
     sys.exit(exit_code)

@@ -47,22 +47,13 @@ def determine_test_list(
 
 
 def run_tests(
-    source: str,
-    tests: Optional[str],
-    depth: int,
-    ignore_paths: List[str],
-    filter_: Optional[str],
-    branch: Optional[str],
+    files_to_test: List[str],
     pytest_opts: List[str],
 ) -> int:
     """
     TODO(cdkini): Write docstr!
 
     """
-    files_to_test = determine_test_list(
-        source, tests, depth, ignore_paths, filter_, branch
-    )
-
     if len(files_to_test) == 0:
         print("No tests to run!")
         return 0
