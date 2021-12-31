@@ -63,7 +63,7 @@ def add_options(options: List[Callable]) -> Callable:
 
 @cli.command(
     name="list",
-    help="Print list of test files determined by dependency graph test algorithm",
+    help="Print list of determined test files",
 )
 @add_options(shared_options)
 @click.argument(
@@ -88,7 +88,7 @@ def list_command(
 
 @cli.command(
     name="run",
-    help="Use pytest to run tests determined by dependency graph test algorithm",
+    help="Run determined test files with pytest",
     context_settings=dict(ignore_unknown_options=True),
 )
 @add_options(shared_options)
