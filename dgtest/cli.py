@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import click
 
@@ -59,6 +59,22 @@ def run(
     filter_: Optional[str],
     branch: Optional[str],
 ) -> None:
+    files_to_test = determine_test_list(
+        source, tests, depth, list(ignore_paths), filter_, branch
+    )
+
+    for file in files_to_test:
+        click.echo(file)
+
+
+def determine_test_list(
+    source: str,
+    tests: Optional[str],
+    depth: int,
+    ignore_paths: List[str],
+    filter_: Optional[str],
+    branch: Optional[str],
+) -> List[str]:
     """Command used to run dependency graph test strategy on a target codebase.
 
     Args:
@@ -70,7 +86,7 @@ def run(
         branch: The specific branch to diff against to determine changed files
 
     Returns:
-        Prints a list of '\n'-delimited test file names
+        A list of test files to run
 
     """
     changed_source_files, changed_test_files = get_changed_files(branch)
@@ -83,9 +99,8 @@ def run(
         source_dependency_graph,
         tests_dependency_graph,
         depth,
-        list(ignore_paths),
+        ignore_paths,
         filter_,
     )
 
-    for file in files_to_test:
-        click.echo(file)
+    return files_to_test
