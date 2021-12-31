@@ -31,9 +31,7 @@ def configure(
                 options[key] = [v.strip() for v in value.strip().split(",")]
             else:
                 options[key] = value
-        click.echo(f"Successfully read config value from {filename}:")
-        for key, value in options:
-            print(f"  {key} - {value}")
+        click.echo(f"Successfully read config value from {filename}: {options}")
 
     except KeyError:
         options = {}
@@ -138,6 +136,9 @@ def list_command(
     filter_: Optional[str],
     branch: Optional[str],
 ) -> None:
+    """
+    TODO(cdkini): Write docstr!
+    """
     files_to_test = determine_test_list(
         source, tests, depth, list(ignore_paths), filter_, branch
     )
@@ -166,6 +167,9 @@ def run_command(
     branch: Optional[str],
     pytest_opts: Tuple[str],
 ) -> None:
+    """
+    TODO(cdkini): Write docstr!
+    """
     exit_code = run_tests(
         source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
     )
