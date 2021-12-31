@@ -4,7 +4,7 @@ import pathlib
 from collections import defaultdict, namedtuple
 from typing import DefaultDict, Dict, List, Optional, Set, Tuple
 
-from dgtest.fs import retrieve_all_source_files, retrieve_all_test_files
+from dgtest.filesystem import retrieve_all_source_files, retrieve_all_test_files
 
 Import = namedtuple("Import", ["source", "module", "name", "alias"])
 

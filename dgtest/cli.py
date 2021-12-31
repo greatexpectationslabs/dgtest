@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 
 import click
 
-from dgtest.fs import get_changed_files
+from dgtest.filesystem import get_changed_files
 from dgtest.graph import determine_tests_to_run
 from dgtest.parse import get_dependency_graphs
 

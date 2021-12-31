@@ -4,7 +4,7 @@ from unittest import mock
 import py
 import pytest
 
-from dgtest.fs import (
+from dgtest.filesystem import (
     get_changed_files,
     retrieve_all_source_files,
     retrieve_all_test_files,
@@ -27,7 +27,7 @@ def create_mock_files(tmpdir: py.path.local) -> Callable:
 
 def test_get_changed_files_only_source_files(create_mock_files: Callable) -> None:
     _, files = create_mock_files("my_dir", "foo.py", "bar.py", "baz.py")
-    with mock.patch("dgtest.fs.git.Repo") as mock_repo:
+    with mock.patch("dgtest.filesystem.git.Repo") as mock_repo:
         mock_repo().git.diff.return_value = "\n".join(file for file in files)
         changed_source_files, changed_test_files = get_changed_files("origin/master")
 
@@ -48,7 +48,7 @@ def test_get_changed_files_both_source_and_test_files(
         "test_baz.py",
         "conftest.py",
     )
-    with mock.patch("dgtest.fs.git.Repo") as mock_repo:
+    with mock.patch("dgtest.filesystem.git.Repo") as mock_repo:
         mock_repo().git.diff.return_value = "\n".join(file for file in files)
         changed_source_files, changed_test_files = get_changed_files("origin/master")
 
@@ -62,7 +62,7 @@ def test_get_changed_files_excludes_non_py_files(
     _, files = create_mock_files(
         "my_dir", "foo.yml", "bar.json", "README.md", "LICENSE"
     )
-    with mock.patch("dgtest.fs.git.Repo") as mock_repo:
+    with mock.patch("dgtest.filesystem.git.Repo") as mock_repo:
         mock_repo().git.diff.return_value = "\n".join(file for file in files)
         changed_source_files, changed_test_files = get_changed_files("origin/master")
 
@@ -74,7 +74,7 @@ def test_get_changed_files_excludes_nonexistant_files(tmpdir: py.path.local) -> 
     my_dir = tmpdir.mkdir("my_dir")
     fake_file = my_dir.join("fake_file.py")
 
-    with mock.patch("dgtest.fs.git.Repo") as mock_repo:
+    with mock.patch("dgtest.filesystem.git.Repo") as mock_repo:
         mock_repo().git.diff.return_value = fake_file.strpath
         changed_source_files, changed_test_files = get_changed_files("origin/master")
 
