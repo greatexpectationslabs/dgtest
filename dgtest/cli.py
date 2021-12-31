@@ -1,16 +1,46 @@
 import sys
-from typing import Callable, List, Optional, Tuple
+from configparser import ConfigParser
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import click
 
 from dgtest.main import determine_test_list, run_tests
 
-
-@click.group()
-def cli() -> None:
-    pass
+DEFAULT_CFG = "dgtest.ini"
 
 
+def configure(
+    ctx: click.Context, param: Union[click.Option, click.Parameter], filename: str
+) -> None:
+    """Callback function to apply config file options if present
+
+    Args:
+        ctx:
+        param:
+        filename:
+
+    """
+    cfg = ConfigParser()
+    cfg.read(filename)
+    try:
+        options: Dict[str, Union[str, List[str]]] = {}
+        data = dict(cfg["options"])
+
+        for key, value in data.items():
+            if "," in key:
+                options[key] = [v.strip() for v in value.strip().split(",")]
+            else:
+                options[key] = value
+        click.echo(f"Successfully read config value from {filename}:")
+        for key, value in options:
+            print(f"  {key} - {value}")
+
+    except KeyError:
+        options = {}
+    ctx.default_map = options
+
+
+# Options shared across ALL commands
 shared_options = [
     click.option(
         "-t",
@@ -26,6 +56,7 @@ shared_options = [
         help="The desired maximum depth of the graph traversal algorithm",
         default=3,
         type=int,
+        show_default=True,
     ),
     click.option(
         "-i",
@@ -49,16 +80,42 @@ shared_options = [
         help="The specific branch to diff against",
         type=str,
     ),
+    click.option(
+        "-c",
+        "--config",
+        default=DEFAULT_CFG,
+        callback=configure,
+        type=click.Path(dir_okay=False),
+        is_eager=True,
+        expose_value=False,
+        help="Read option defaults from the specified config file",
+        show_default=True,
+    ),
 ]
 
 
 def add_options(options: List[Callable]) -> Callable:
+    """Decorator to apply shared options to all dgtest CLI commands
+
+    Args:
+        options:
+
+    Returns:
+        A callable function used to apply click.option decorators to a command
+
+    """
+
     def _add_options(func: Callable) -> Callable:
         for option in reversed(options):
             func = option(func)
         return func
 
     return _add_options
+
+
+@click.group()
+def cli() -> None:
+    pass
 
 
 @cli.command(
