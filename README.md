@@ -78,4 +78,4 @@ to this:
 dgtest list great_expectations/
 ```
 
-Any values passed into a command-line invokation will take priority over the config file's variables.
+Any values passed into a command-line invocation will take priority over the config file's variables.
