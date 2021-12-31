@@ -31,10 +31,14 @@ def configure(
                 options[key] = [v.strip() for v in value.strip().split(",")]
             else:
                 options[key] = value
-        click.echo(f"Successfully read config value from {filename}: {options}")
+        click.echo(f"Successfully read config values from {filename}: {options}")
 
     except KeyError:
         options = {}
+        click.echo(
+            f"Something went wrong when reading config values from {filename}; ignoring and using defaults"
+        )
+
     ctx.default_map = options
 
 
@@ -96,7 +100,7 @@ def add_options(options: List[Callable]) -> Callable:
     """Decorator to apply shared options to all dgtest CLI commands
 
     Args:
-        options:
+        options: A list of Click options to be applied to any number of Click commands
 
     Returns:
         A callable function used to apply click.option decorators to a command
