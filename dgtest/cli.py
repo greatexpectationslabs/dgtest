@@ -104,9 +104,9 @@ def run_command(
     ignore_paths: Tuple[str],
     filter_: Optional[str],
     branch: Optional[str],
-    pytest_args: Tuple[str],
+    pytest_opts: Tuple[str],
 ) -> None:
     exit_code = run_tests(
-        source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_args)
+        source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
     )
     sys.exit(exit_code)

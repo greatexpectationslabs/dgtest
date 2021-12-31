@@ -53,7 +53,7 @@ def run_tests(
     ignore_paths: List[str],
     filter_: Optional[str],
     branch: Optional[str],
-    pytest_args: List[str],
+    pytest_opts: List[str],
 ) -> int:
     """
     TODO(cdkini): Write docstr!
@@ -66,5 +66,5 @@ def run_tests(
     if len(files_to_test) == 0:
         return 0
 
-    exit_code = pytest.main(files_to_test + pytest_args)
+    exit_code = pytest.main(files_to_test + pytest_opts)
     return exit_code
