@@ -146,9 +146,9 @@ def list_command(
     files_to_test = determine_test_list(
         source, tests, depth, list(ignore_paths), filter_, branch
     )
-
+    click.echo("Files identified by dgtest:")
     for file in files_to_test:
-        click.echo(file)
+        click.echo(f"  {file}")
 
 
 @cli.command(
