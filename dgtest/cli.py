@@ -115,6 +115,9 @@ def add_options(options: List[Callable]) -> Callable:
 
 @click.group()
 def cli() -> None:
+    """
+    Welcome to dgtest!
+    """
     pass
 
 
