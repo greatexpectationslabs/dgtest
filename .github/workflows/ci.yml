@@ -10,7 +10,7 @@ on:
       - develop
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,6 +26,6 @@ jobs:
       - name: Run unit tests
         run: pytest tests/unit
       - name: Run integration tests
-        run: pytest tests/unit
+        run: pytest tests/integration
       - name: Run dgtest
         run: dgtest run dgtest
