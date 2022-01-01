@@ -129,7 +129,6 @@ def _run(
     pytest_opts: List[str],
 ) -> int:
     if len(files_to_test) == 0:
-        click.echo("No tests to run!")
         return 0
 
     exit_code = pytest.main(files_to_test + pytest_opts)

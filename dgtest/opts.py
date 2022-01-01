@@ -19,12 +19,15 @@ def configure(
 
     """
     cfg = ConfigParser()
-    cfg.read(filename)
-    try:
-        options: Dict[str, Union[str, List[str]]] = {}
-        data = dict(cfg["options"])
 
+    options: Dict[str, Union[str, List[str]]] = {}
+    if not cfg.read(filename):
+        return
+
+    try:
+        data = dict(cfg["options"])
         for key, value in data.items():
+            # Necessary to convert INI lists into Python lists
             if "," in key:
                 options[key] = [v.strip() for v in value.strip().split(",")]
             else:
