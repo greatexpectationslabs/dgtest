@@ -114,7 +114,7 @@ def _list(
         filter_,
     )
 
-    click.echo("Files identified by dgtest:")
+    click.echo("Test files identified by dgtest:")
     if not files_to_test:
         click.echo("  No tests to run!")
     else:
@@ -132,4 +132,8 @@ def _run(
         return 0
 
     exit_code = pytest.main(files_to_test + pytest_opts)
+    # Exit cod 5: No tests were collected (we want to treat this as a pass)
+    if exit_code == 5:
+        exit_code = 0
+
     return exit_code
