@@ -1,118 +1,13 @@
 import sys
-from configparser import ConfigParser
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import click
+import pytest
 
-from dgtest.main import determine_test_list, run_tests
-
-DEFAULT_CFG = "dgtest.ini"
-
-
-def configure(
-    ctx: click.Context, param: Union[click.Option, click.Parameter], filename: str
-) -> None:
-    """Callback function to apply config file options if present
-
-    Args:
-        ctx:
-        param:
-        filename:
-
-    """
-    cfg = ConfigParser()
-    cfg.read(filename)
-    try:
-        options: Dict[str, Union[str, List[str]]] = {}
-        data = dict(cfg["options"])
-
-        for key, value in data.items():
-            if "," in key:
-                options[key] = [v.strip() for v in value.strip().split(",")]
-            else:
-                options[key] = value
-        click.echo(f"Successfully read config values from {filename}: {options}")
-
-    except KeyError:
-        options = {}
-        click.echo(
-            f"Something went wrong when reading config values from {filename}; ignoring and using defaults"
-        )
-
-    ctx.default_map = options
-
-
-# Options shared across ALL commands
-shared_options = [
-    click.option(
-        "-t",
-        "--tests",
-        "tests",
-        help="The relative path to your tests directory (if applicable)",
-        type=click.Path(exists=True),
-    ),
-    click.option(
-        "-d",
-        "--depth",
-        "depth",
-        help="The desired maximum depth of the graph traversal algorithm",
-        default=3,
-        type=int,
-        show_default=True,
-    ),
-    click.option(
-        "-i",
-        "--ignore",
-        "ignore_paths",
-        help="Exclude results that begin with any provided path prefix",
-        type=click.Path(),
-        multiple=True,
-    ),
-    click.option(
-        "-f",
-        "--filter",
-        "filter_",
-        help="Filter results to only include those that being with the provided path prefix",
-        type=click.Path(),
-    ),
-    click.option(
-        "-b",
-        "--branch",
-        "branch",
-        help="The specific branch to diff against",
-        type=str,
-    ),
-    click.option(
-        "-c",
-        "--config",
-        default=DEFAULT_CFG,
-        callback=configure,
-        type=click.Path(dir_okay=False),
-        is_eager=True,
-        expose_value=False,
-        help="Read option defaults from the specified config file",
-        show_default=True,
-    ),
-]
-
-
-def add_options(options: List[Callable]) -> Callable:
-    """Decorator to apply shared options to all dgtest CLI commands
-
-    Args:
-        options: A list of Click options to be applied to any number of Click commands
-
-    Returns:
-        A callable function used to apply click.option decorators to a command
-
-    """
-
-    def _add_options(func: Callable) -> Callable:
-        for option in reversed(options):
-            func = option(func)
-        return func
-
-    return _add_options
+from dgtest.filesystem import get_changed_files
+from dgtest.graph import determine_tests_to_run
+from dgtest.opts import add_options, shared_options
+from dgtest.parse import get_dependency_graphs
 
 
 @click.group()
@@ -142,17 +37,9 @@ def list_command(
 ) -> None:
     """
     TODO(cdkini): Write docstr!
-    """
-    files_to_test = determine_test_list(
-        source, tests, depth, list(ignore_paths), filter_, branch
-    )
 
-    click.echo("Files identified by dgtest:")
-    if not files_to_test:
-        click.echo("  No tests to run!")
-    else:
-        for file in files_to_test:
-            click.echo(f"  {file}")
+    """
+    _list(source, tests, depth, list(ignore_paths), filter_, branch)
 
 
 @cli.command(
@@ -177,10 +64,52 @@ def run_command(
 ) -> None:
     """
     TODO(cdkini): Write docstr!
+
     """
-    files_to_test = determine_test_list(
-        source, tests, depth, list(ignore_paths), filter_, branch
+    files_to_test = _list(source, tests, depth, list(ignore_paths), filter_, branch)
+    exit_code = _run(files_to_test, list(pytest_opts))
+    sys.exit(exit_code)
+
+
+def _list(
+    source: str,
+    tests: Optional[str],
+    depth: int,
+    ignore_paths: List[str],
+    filter_: Optional[str],
+    branch: Optional[str],
+) -> List[str]:
+    changed_source_files, changed_test_files = get_changed_files(branch)
+    source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
+        source, tests
+    )
+    files_to_test = determine_tests_to_run(
+        changed_source_files,
+        changed_test_files,
+        source_dependency_graph,
+        tests_dependency_graph,
+        depth,
+        ignore_paths,
+        filter_,
     )
 
-    exit_code = run_tests(files_to_test, list(pytest_opts))
-    sys.exit(exit_code)
+    click.echo("Files identified by dgtest:")
+    if not files_to_test:
+        click.echo("  No tests to run!")
+    else:
+        for file in files_to_test:
+            click.echo(f"  {file}")
+
+    return files_to_test
+
+
+def _run(
+    files_to_test: List[str],
+    pytest_opts: List[str],
+) -> int:
+    if len(files_to_test) == 0:
+        click.echo("No tests to run!")
+        return 0
+
+    exit_code = pytest.main(files_to_test + pytest_opts)
+    return exit_code
