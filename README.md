@@ -26,7 +26,7 @@ Note that `dgtest` only works with codebases that use `pytest` as a testing fram
 #### Installation
 
 To get started, install the CLI tool using:
-```
+```bash
 # Get latest version from PyPi
 pip install dgtest
 
