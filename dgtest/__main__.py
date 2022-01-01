@@ -1,3 +1,3 @@
 from dgtest.cli import cli
 
-cli()
+cli()  # Enables us to run dgtest as follows: `python -m dgtest run ...`
