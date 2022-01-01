@@ -93,3 +93,10 @@ dgtest list great_expectations
 ```
 
 Any values passed into a command-line invocation will take priority over the config file's variables.
+
+If you'd like to set up `dgtest` as part of your PyCharm workflow:
+1. Navigate to **Run** -> **Edit Configurations** within your menu bar
+2. Click the **+** icon and add a new **Python** configuration
+3. Copy the following config options and click **Apply** and **Ok**:
+
+![PyCharm Config](assets/pycharm_config.png)
