@@ -1,6 +1,10 @@
 <h3 align="center">dgtest</h3>
 
-[![asciicast](https://asciinema.org/a/kUYvSCoqbtrddwgYigoPKOSHc.png)](https://asciinema.org/a/kUYvSCoqbtrddwgYigoPKOSHc)
+<p align="center">
+<a href="https://asciinema.org/a/kUYvSCoqbtrddwgYigoPKOSHc?autoplay=1">
+    <img src="https://asciinema.org/a/kUYvSCoqbtrddwgYigoPKOSHc.png" width="80%"/>
+</a>
+</p>
 
 ---
 
