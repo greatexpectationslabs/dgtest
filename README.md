@@ -15,7 +15,7 @@ Using AST parsing, `dgtest` creates dependency graphs out of your codebase and u
 subset of the test suite required to obtain coverage over a given commit or PR.
 
 Note that this is designed to be used in tandem with your current testing strategy. `dgtest` provides a high level of accuracy but ultimately is a static
-analysis tool and relies heavily on adherence to Pythonic conventions (namely imports as discussed in the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#224-decision0).
+analysis tool and relies heavily on adherence to Pythonic conventions (namely imports as discussed in the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#224-decision0)).
 If you use this tool, ensure you still run the full suite every so often.
 
 Note that `dgtest` only works with codebases that use `pytest` as a testing framework; due to the way the tool parses
