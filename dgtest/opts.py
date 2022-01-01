@@ -7,12 +7,15 @@ import click
 def configure(
     ctx: click.Context, param: Union[click.Option, click.Parameter], filename: str
 ) -> None:
-    """Callback function to apply config file options if present
+    """Callback function to apply config file options to CLI commands (if present)
 
     Args:
-        ctx:
-        param:
-        filename:
+        ctx: Click context used to pass on state on commands
+        param: Unused but necessary to maintain signature
+        filename: The configuration file
+
+    Returns:
+        Saves the config options in a dictionary within the Click context
 
     """
     cfg = ConfigParser()

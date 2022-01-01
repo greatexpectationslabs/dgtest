@@ -1,11 +1,8 @@
 import glob
-import logging
 import pathlib
 from typing import List, Optional, Tuple
 
 import git
-
-logger = logging.getLogger(__name__)
 
 
 def get_changed_files(branch: Optional[str]) -> Tuple[List[str], List[str]]:

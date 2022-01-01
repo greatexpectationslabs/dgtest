@@ -13,7 +13,7 @@ from dgtest.parse import get_dependency_graphs
 @click.group()
 def cli() -> None:
     """
-    Welcome to dgtest!
+    Only test what you need to.
     """
     pass
 
@@ -35,8 +35,18 @@ def list_command(
     filter_: Optional[str],
     branch: Optional[str],
 ) -> None:
-    """
-    TODO(cdkini): Write docstr!
+    """Command responsible for listing out the test files determined by the dgtest algorithm
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The git branch to diff against
+
+    Returns:
+        Lists out results to STDOUT
 
     """
     _list(source, tests, depth, list(ignore_paths), filter_, branch)
@@ -62,8 +72,19 @@ def run_command(
     branch: Optional[str],
     pytest_opts: Tuple[str],
 ) -> None:
-    """
-    TODO(cdkini): Write docstr!
+    """Command responsible for running the test files determined by the dgtest algorithm
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The git branch to diff against
+        pytest_opts: Any pytest flags, options, or args -- note that they may not collide with a dgtest option
+
+    Returns:
+        Lists out results to STDOUT and invokes pytest
 
     """
     files_to_test = _list(source, tests, depth, list(ignore_paths), filter_, branch)
