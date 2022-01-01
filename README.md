@@ -1,5 +1,7 @@
 <h3 align="center">dgtest</h3>
 
+[![asciicast](https://asciinema.org/a/kUYvSCoqbtrddwgYigoPKOSHc.png)](https://asciinema.org/a/kUYvSCoqbtrddwgYigoPKOSHc)
+
 ---
 
 #### Background

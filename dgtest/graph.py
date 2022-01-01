@@ -1,5 +1,4 @@
-import json
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 
 
 def determine_tests_to_run(
