@@ -100,4 +100,4 @@ If you'd like to set up `dgtest` as part of your PyCharm workflow:
 3. Copy the following config options and click **Apply** and **Ok**:
 
 ![PyCharm Config](assets/pycharm_config.png)
-*Note that the `dgtest` options (`-t` and `-b`) are not strictly necessary if they are configured in a `dgtest.ini` file.*
+*Note that `dgtest` options (`-t` and `-b`) are not strictly necessary if they are configured in a `dgtest.ini` file.*
