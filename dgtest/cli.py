@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 import click
 import pytest
 
-from dgtest.filesystem import get_changed_files
+from dgtest.fs import get_changed_files
 from dgtest.graph import determine_tests_to_run
 from dgtest.opts import add_options, shared_options
 from dgtest.parse import get_dependency_graphs
