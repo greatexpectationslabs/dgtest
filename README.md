@@ -157,8 +157,10 @@ Using this, we know exactly where each symbol originates from.
 # Example - great_expectations/data_context/data_context.py
 class DataContext(BaseDataContext):
     ...
-
-# Result: `DataContext` -> great_expectations/data_context/data_context.py
+```
+```
+Result:
+  `DataContext` -> great_expectations/data_context/data_context.py
 ```
 
 Let's call the result of this stage our `definition_map`.
@@ -180,9 +182,10 @@ import warnings
 from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
-
-# Result: great_expectations/data_context/types/resource_identifiers.py ->
-#         great_expectations/render/util.py
+```
+```
+Result:
+  great_expectations/data_context/types/resource_identifiers.py -> great_expectations/render/util.py
 ```
 
 Only relative imports are considered in this process; we do not care about the standard library
@@ -204,8 +207,10 @@ def ge_cloud_config(ge_cloud_base_url, ge_cloud_account_id, ge_cloud_access_toke
         account_id=ge_cloud_account_id,
         access_token=ge_cloud_access_token,
     )
-
-# Result: `ge_cloud_config` -> great_expectations/data_context/types/base.py
+```
+```
+Result:
+  `ge_cloud_config` -> great_expectations/data_context/types/base.py
 ```
 
 Note that `dgtest` does not currently evaluate nested fixtures. An association is only created
@@ -233,12 +238,11 @@ from great_expectations import DataContext
 # `pandas_dataset` is a fixture with a dependency on `self_check/util.py`
 def test_valid_expectation_types(pandas_dataset):
     ...
-
-# Result: `great_expectations/data_context/data_context.py` ->
-#         `tests/data_asset/test_data_asset.py`
-#
-#         `great_expectations/self_check/util.py` ->
-#         `tests/data_asset/test_data_asset.py`
+```
+```
+Result:
+  great_expectations/data_context/data_context.py -> tests/data_asset/test_data_asset.py
+  great_expectations/self_check/util.py -> tests/data_asset/test_data_asset.py
 ```
 
 Let's call the result of this stage our `tests_dependency_graph`.
