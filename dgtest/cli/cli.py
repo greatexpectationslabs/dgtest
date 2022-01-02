@@ -34,7 +34,7 @@ def configure(
         data = dict(cfg["options"])
         for key, value in data.items():
             # Necessary to convert INI lists into Python lists
-            if "," in key:
+            if "," in value:
                 options[key] = [v.strip() for v in value.strip().split(",")]
             else:
                 options[key] = value
