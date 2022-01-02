@@ -33,12 +33,35 @@ def get_changed_files(branch: Optional[str]) -> Tuple[List[str], List[str]]:
 
 
 def retrieve_all_source_files(source: str) -> List[str]:
+    """Utility to aggregate all source files for future processing
+
+    Args:
+        source: The relative path to your source directory
+
+    Returns:
+        A list of existing Python files from your source directory
+
+    """
     all_files = _retrieve_all_py_files(source)
     source_files = _filter_source_files(all_files)
     return source_files
 
 
 def retrieve_all_test_files(source: str, tests: Optional[str]) -> List[str]:
+    """Utility to aggregate all test files for future processing
+
+    Note that the tests argument is optional because some users keep their tests
+    alongside their source code. If an external tests directory is relevant to the
+    given codebase, it must explicitly be passed along here.
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory (if applicable)
+
+    Returns:
+        A list of existing Python tests files from the provided directories
+
+    """
     all_files = _retrieve_all_py_files(source)
     if tests is not None:
         all_files += _retrieve_all_py_files(tests)

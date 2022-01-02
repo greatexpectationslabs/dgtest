@@ -89,6 +89,9 @@ def determine_test_candidates(
 ) -> List[str]:
     """Determines a list of test files that should be run to cover a set of changed source files
 
+    These are the raw results and will need to undergo further processing before a finalized
+    list can be provided to the user.
+
     Args:
         tests_dependency_graph: A mapping between source files and the relevant test files needed to gain coverage (see `parse_pytest_tests_from_codebase`)
         relevant_source_files: The output list of source files determined by `determine_relevant_source_files`
@@ -112,6 +115,9 @@ def filter_test_candidates(
     test_candidates: List[str], ignore_paths: List[str], filter_: Optional[str]
 ) -> List[str]:
     """Filters a series of test candidates down to the final output
+
+    Uses a number of user-provided criteria (filters and ignores) to narrow down the
+    list of candidates.
 
     Args:
         tests_candidates: The output list of test files determined by `filter_test_candidates`

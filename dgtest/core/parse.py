@@ -58,7 +58,7 @@ def parse_definition_nodes_from_codebase(
 
     Returns:
         A mapping between class/function definition and the origin of that symbol.
-        Using this, one can immediately tell where to look when encountering a class instance or method invokation.
+        Using this, one can immediately tell where to look when encountering a class instance or method invocation.
 
     """
     definition_map: Dict[str, Set[str]] = {}
@@ -69,6 +69,7 @@ def parse_definition_nodes_from_codebase(
 
 
 def parse_definition_nodes_from_file(file: str) -> Dict[str, Set[str]]:
+    """ See `parse_definition_nodes_from_codebase` """
     with open(file) as f:
         root = ast.parse(f.read(), file)
 
@@ -115,6 +116,7 @@ def parse_import_nodes_from_file(
     source: str,
     definition_map: Dict[str, Set[str]],
 ) -> Set[str]:
+    """ See `parse_import_nodes_from_codebase` """
     imports = _gather_import_nodes_from_file(file)
     paths = set()
     for import_ in imports:
@@ -202,6 +204,7 @@ def parse_pytest_fixtures_from_codebase(
 def parse_pytest_fixtures_from_file(
     file: str, definition_map: Dict[str, Set[str]]
 ) -> Dict[str, Set[str]]:
+    """ See `parse_pytest_fixtures_from_codebase` """
     fixture_nodes = _gather_fixture_nodes_from_file(file)
 
     # Parse the body of each fixture and find symbols.
@@ -293,6 +296,7 @@ def parse_pytest_tests_from_file(
     definition_map: Dict[str, Set[str]],
     fixture_map: Dict[str, Set[str]],
 ) -> Dict[str, Set[str]]:
+    """ See `parse_pytest_tests_from_codebase` """
     # Parse the test file's imports and create associations between source files and test files
     file_graph: DefaultDict[str, Set[str]] = defaultdict(set)
     source_file_paths = parse_import_nodes_from_file(test_file, source, definition_map)
@@ -319,7 +323,13 @@ def parse_pytest_tests_from_file(
 
 
 def update_dict(A: Dict[str, Set[str]], B: Dict[str, Set[str]]) -> None:
-    """Utility to update the items of dict A with those of B (without overlapping or overwriting)"""
+    """Utility to update the items of dict A with those of B (without overlapping or overwriting)
+
+    Args:
+        A: The dictionary to update
+        B: The dictionary used to update the primary dictionary
+
+    """
     for key, val in A.items():
         if key in B:
             A[key] = val.union(B[key])
