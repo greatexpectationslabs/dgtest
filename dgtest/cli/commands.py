@@ -16,8 +16,18 @@ def list_dgtest_results(
     filter_: Optional[str],
     branch: Optional[str],
 ) -> List[str]:
-    """
-    TODO(cdkini): Write docstr!
+    """Command responsible for listing out the test files determined by the dgtest algorithm
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The git branch to diff against
+
+    Returns:
+        A list of test results from your test suite
 
     """
     changed_source_files, changed_test_files = get_changed_files(branch)
@@ -60,8 +70,19 @@ def run_dgtest_results(
     branch: Optional[str],
     pytest_opts: List[str],
 ) -> int:
-    """
-    TODO(cdkini): Write docstr!
+    """Command responsible for running the test files determined by the dgtest algorithm
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The git branch to diff against
+        pytest_opts: Any pytest flags, options, or args -- note that they may not collide with a dgtest option
+
+    Returns:
+        A status code (non-zero signifying a failure)
 
     """
     files_to_test = list_dgtest_results(

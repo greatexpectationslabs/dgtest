@@ -14,13 +14,14 @@ def configure(
 ) -> None:
     """Callback function to apply config file options to CLI commands (if present)
 
-    Args:
-        ctx: Click context used to pass on state on commands
-        param: Unused but necessary to maintain signature
-        filename: The configuration file
+    Saves the config options in a dictionary within the Click context to then be
+    passed down to any number of commands. In the case configuration options are not
+    present, the command's defaults will apply.
 
-    Returns:
-        Saves the config options in a dictionary within the Click context
+    Args:
+        ctx: Click context used to pass on state to commands
+        param: Unused but necessary to maintain signature
+        filename: The path to a configuration file
 
     """
     cfg = ConfigParser()
@@ -127,7 +128,10 @@ shared_options = [
 @click.group()
 def cli() -> None:
     """
-    Only test what you need to.
+    Dynamically determine which tests you need to run based on your Git state.
+
+    Using AST and graph traversal, dgtest creates a dependency graph out of your
+    codebase and uses it to highlight only the most relevant parts of your test suite.
     """
     pass
 
@@ -149,20 +153,7 @@ def list_command(
     filter_: Optional[str],
     branch: Optional[str],
 ) -> None:
-    """Command responsible for listing out the test files determined by the dgtest algorithm
-
-    Args:
-        source: The relative path to your source directory
-        tests: The relative path to your tests directory
-        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
-        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
-        filter_: Only test paths that start with this value are included in the output
-        branch: The git branch to diff against
-
-    Returns:
-        Lists out results to STDOUT
-
-    """
+    """ See 'list_dgtest_results' for more detail """
     list_dgtest_results(source, tests, depth, list(ignore_paths), filter_, branch)
 
 
@@ -186,21 +177,7 @@ def run_command(
     branch: Optional[str],
     pytest_opts: Tuple[str],
 ) -> None:
-    """Command responsible for running the test files determined by the dgtest algorithm
-
-    Args:
-        source: The relative path to your source directory
-        tests: The relative path to your tests directory
-        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
-        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
-        filter_: Only test paths that start with this value are included in the output
-        branch: The git branch to diff against
-        pytest_opts: Any pytest flags, options, or args -- note that they may not collide with a dgtest option
-
-    Returns:
-        Lists out results to STDOUT and invokes pytest
-
-    """
+    """ See 'run_dgtest_results' for more detail """
     code = run_dgtest_results(
         source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
     )
