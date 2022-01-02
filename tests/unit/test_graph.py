@@ -62,7 +62,7 @@ def test_filter_test_candidates_with_ignore_paths() -> None:
     ]
     ignore_paths = ["b", "a/c"]
 
-    tests = filter_test_candidates(candidates, ignore_paths)
+    tests = filter_test_candidates(candidates, ignore_paths, filter_=None)
     assert tests == ["a/b/c", "a/b/d"]
 
 
