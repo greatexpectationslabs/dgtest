@@ -142,7 +142,7 @@ def test_great_expectations_parsing(
     snapshot.assert_match(cleaned_tests_dependency_graph)
 
 
-def test_great_expectations_determine_tests_to_run_depth(
+def test_great_expectations_determine_tests_to_run(
     great_expectations: Tuple[str, str],
     snapshot: Any,
     clean_dictionary_of_tmpdir_prefix: Callable,
@@ -172,7 +172,6 @@ def test_great_expectations_determine_tests_to_run_depth(
         "tests/data_context/store/test_configuration_store.py",
     ]
 
-    # Pretend each file is a separate change or commit and see what the output is
     relevant_tests = determine_tests_to_run(
         changed_source_files,
         changed_test_files,
