@@ -205,3 +205,7 @@ def run_command(
         source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
     )
     sys.exit(code)
+
+
+if __name__ == "__main__":
+    cli()
