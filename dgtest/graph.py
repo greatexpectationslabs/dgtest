@@ -109,7 +109,7 @@ def determine_test_candidates(
 
 
 def filter_test_candidates(
-    test_candidates: List[str], ignore_paths: List[str], filter_: Optional[str] = None
+    test_candidates: List[str], ignore_paths: List[str], filter_: Optional[str]
 ) -> List[str]:
     """Filters a series of test candidates down to the final output
 

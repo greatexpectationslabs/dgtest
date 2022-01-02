@@ -38,7 +38,7 @@ def retrieve_all_source_files(source: str) -> List[str]:
     return source_files
 
 
-def retrieve_all_test_files(source: str, tests: Optional[str] = None) -> List[str]:
+def retrieve_all_test_files(source: str, tests: Optional[str]) -> List[str]:
     all_files = _retrieve_all_py_files(source)
     if tests is not None:
         all_files += _retrieve_all_py_files(tests)

@@ -104,6 +104,13 @@ def _list(
     source_dependency_graph, tests_dependency_graph = get_dependency_graphs(
         source, tests
     )
+
+    # Test dependency graph will be empty if no tests are present
+    if not tests_dependency_graph and not tests:
+        click.echo(
+            "No test files were parsed; if using an external tests directory, please ensure you pass it in with `-t`"
+        )
+
     files_to_test = determine_tests_to_run(
         changed_source_files,
         changed_test_files,
