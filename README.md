@@ -135,6 +135,8 @@ git diff <BRANCH> --name-only
 
 The result of the stage is saved for later; let's call these our `changed_files`.
 
+---
+
 #### 2. Create dependency graphs
 
 The next step encapsulates the bulk of the complexity and logic of the application.
@@ -246,6 +248,8 @@ Result:
 ```
 
 Let's call the result of this stage our `tests_dependency_graph`.
+
+---
 
 #### 3. Traverse graphs
 
