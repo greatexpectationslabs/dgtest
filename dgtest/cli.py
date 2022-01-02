@@ -139,7 +139,7 @@ def _run(
         return 0
 
     exit_code = pytest.main(files_to_test + pytest_opts)
-    # Exit cod 5: No tests were collected (we want to treat this as a pass)
+    # Exit code 5: No tests were collected (we want to treat this as a pass)
     if exit_code == 5:
         exit_code = 0
 
