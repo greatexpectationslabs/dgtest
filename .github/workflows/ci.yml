@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
           pip install -e .
       - name: Run unit tests
-        run: pytest tests/unit
+        run: pytest tests/core
       - name: Run integration tests
         run: pytest tests/integration
       - name: Run dgtest

@@ -5,9 +5,9 @@ from typing import Any, Callable, Dict, Set, Tuple
 import git
 import pytest
 
-from dgtest.fs import retrieve_all_source_files, retrieve_all_test_files
-from dgtest.graph import determine_tests_to_run
-from dgtest.parse import (
+from dgtest.core.fs import retrieve_all_source_files, retrieve_all_test_files
+from dgtest.core.graph import determine_tests_to_run
+from dgtest.core.parse import (
     get_dependency_graphs,
     parse_definition_nodes_from_codebase,
     parse_import_nodes_from_codebase,

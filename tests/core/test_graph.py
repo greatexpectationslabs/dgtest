@@ -1,6 +1,4 @@
-from typing import Dict, Set
-
-from dgtest.graph import (
+from dgtest.core.graph import (
     determine_relevant_source_files,
     determine_test_candidates,
     filter_test_candidates,

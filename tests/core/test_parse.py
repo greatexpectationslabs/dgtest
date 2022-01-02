@@ -3,7 +3,7 @@ from typing import Callable, Dict, List, Set, Tuple
 import py
 import pytest
 
-from dgtest.parse import (
+from dgtest.core.parse import (
     parse_definition_nodes_from_codebase,
     parse_definition_nodes_from_file,
     parse_import_nodes_from_codebase,

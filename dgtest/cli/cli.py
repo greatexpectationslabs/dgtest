@@ -1,7 +1,12 @@
+import sys
 from configparser import ConfigParser
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import click
+
+from dgtest.cli.commands import list_dgtest_results, run_dgtest_results
+
+# Configuration and options ============================================================================================
 
 
 def configure(
@@ -114,3 +119,89 @@ shared_options = [
         show_default=True,
     ),
 ]
+
+
+# CLI commands =========================================================================================================
+
+
+@click.group()
+def cli() -> None:
+    """
+    Only test what you need to.
+    """
+    pass
+
+
+@cli.command(
+    name="list",
+    help="Print list of determined test files",
+)
+@add_options(shared_options)
+@click.argument(
+    "source",
+    type=click.Path(exists=True),
+)
+def list_command(
+    source: str,
+    tests: Optional[str],
+    depth: int,
+    ignore_paths: Tuple[str],
+    filter_: Optional[str],
+    branch: Optional[str],
+) -> None:
+    """Command responsible for listing out the test files determined by the dgtest algorithm
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The git branch to diff against
+
+    Returns:
+        Lists out results to STDOUT
+
+    """
+    list_dgtest_results(source, tests, depth, list(ignore_paths), filter_, branch)
+
+
+@cli.command(
+    name="run",
+    help="Run determined test files with pytest",
+    context_settings=dict(ignore_unknown_options=True),
+)
+@add_options(shared_options)
+@click.argument(
+    "source",
+    type=click.Path(exists=True),
+)
+@click.argument("pytest_opts", nargs=-1, type=click.UNPROCESSED)
+def run_command(
+    source: str,
+    tests: Optional[str],
+    depth: int,
+    ignore_paths: Tuple[str],
+    filter_: Optional[str],
+    branch: Optional[str],
+    pytest_opts: Tuple[str],
+) -> None:
+    """Command responsible for running the test files determined by the dgtest algorithm
+
+    Args:
+        source: The relative path to your source directory
+        tests: The relative path to your tests directory
+        depth: The depth of the graph traversal (the larger the number, the greater the coverage but the smaller the specificity)
+        ignore_paths: Any test files that starts with any paths in this collection are ignored in the output
+        filter_: Only test paths that start with this value are included in the output
+        branch: The git branch to diff against
+        pytest_opts: Any pytest flags, options, or args -- note that they may not collide with a dgtest option
+
+    Returns:
+        Lists out results to STDOUT and invokes pytest
+
+    """
+    code = run_dgtest_results(
+        source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
+    )
+    sys.exit(code)
