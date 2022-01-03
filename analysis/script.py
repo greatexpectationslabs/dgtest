@@ -51,7 +51,9 @@ def collect_azure_runs(pipeline_id: int, seen: Set[str]) -> List[AzureRun]:
             continue
 
         timestamp = parser.parse(entry["createdDate"])
-        if timestamp.year == 2021 and timestamp.month == 12 and timestamp.day >= 13:
+        if timestamp.year == 2022 or (
+            timestamp.year == 2021 and timestamp.month == 12 and timestamp.day >= 13
+        ):
             run = AzureRun(
                 id=str(entry["id"]),
                 name=entry["name"],
