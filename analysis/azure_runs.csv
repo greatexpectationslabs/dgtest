@@ -459,3 +459,6 @@
 24914, 20220104.25, 2022-01-04T20:30:50.4931129Z, dependency_graph, succeeded, completed, compatibility_matrix Python38-PandasLatest | 0, comprehensive Python38 | 0, mysql | 0, test_cli | 0
 24910, 20220104.24, 2022-01-04T20:29:31.7747069Z, dependency_graph, succeeded, completed, compatibility_matrix Python38-PandasLatest | 0, comprehensive Python38 | 0, mysql | 0, test_cli | 0
 24903, 20220104.22, 2022-01-04T19:56:53.4354244Z, dependency_graph, succeeded, completed, compatibility_matrix Python38-PandasLatest | 2638, comprehensive Python38 | 5880, mysql | 4873, test_cli | 432
+24917, 20220104.26, 2022-01-04T20:59:14.5431399Z, dependency_graph, failed, completed, compatibility_matrix Python38-PandasLatest | 0, comprehensive Python38 | 0, mysql | 0, test_cli | 0
+24924, 20220104.28, 2022-01-04T21:44:24.2282972Z, dependency_graph, failed, completed, compatibility_matrix Python38-PandasLatest | 0, comprehensive Python38 | 0, mysql | 0, test_cli | 0
+24921, 20220104.27, 2022-01-04T21:01:38.8410484Z, dependency_graph, succeeded, completed, compatibility_matrix Python38-PandasLatest | 2638, comprehensive Python38 | 5880, mysql | 4873, test_cli | 432

@@ -9,7 +9,7 @@
 23717, 20211223.2, great_expectations, failed, completed,       - NOT A REAL ERROR (usage stats)
 23806, 20211223.28, great_expectations, failed, completed,      - NOT A REAL ERROR (checkout error)
 23830, 20211223.34, great_expectations, succeeded, completed,   - NOT A REAL ERROR (skipped run)
-23860, 20211225.1, great_expectations, failed, completed,       - CLI tests fail in GE but don't run in DG (shouldn't have failed though?)
+23860, 20211225.1, great_expectations, failed, completed,       - DEVIATION - CLI tests fail in GE but don't run in DG
 23973, 20211227.23, great_expectations, succeeded, completed,   - NOT A REAL ERROR (renderer test failure due to shared state)
 24022, 20211228.12, great_expectations, succeeded, completed,   - NOT A REAL ERROR (renderer test failure due to shared state)
 24038, 20211228.16, great_expectations, succeeded, completed,   - NOT A REAL ERROR (renderer test failure due to shared state)
