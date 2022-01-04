@@ -23,5 +23,5 @@
 24697, 20220103.17, great_expectations, failed, completed,      - NOT A REAL ERROR (usage stats)
 24834, 20220104.5, great_expectations, failed, completed        - NOT A REAL ERROR (usage stats)
 24825, 20220104.3, great_expectations, failed, completed        - NOT A REAL ERROR (usage stats)
-24873, 20220104.15, 2022-01-04T17:16:42.4235926Z, great_expectations, failed, completed
-24853, 20220104.10, 2022-01-04T16:35:41.765472Z, great_expectations, failed, completed
+24873, 20220104.15, great_expectations, failed, completed       - NOT A REAL ERROR (both pipelines passed)
+24853, 20220104.10, great_expectations, failed, completed       - NOT A REAL ERROR (usage stats)
