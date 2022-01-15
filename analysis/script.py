@@ -135,12 +135,14 @@ def get_deviations_between_pipelines():
     with open("deviations.csv", "r") as f:
         seen = set(e.split(",")[0] for e in f.readlines())
 
+    deviations = list(filter(lambda d: d.id not in seen, deviations))
+    if not deviations:
+        return
+
     with open("deviations.csv", "a") as f:
         print("Deviations:")
         for run in deviations:
-            if run.id in seen:
-                continue
-            print(run.id, run.name, run.timestamp)
+            print(f"  {run.id} | {run.name} | {run.timestamp}")
             f.write(f"{run}\n")
 
 
@@ -148,7 +150,6 @@ def main():
     seen = get_seen_entries()
     dependency_graph_runs = collect_azure_runs(8, seen)
     retrieve_logs(dependency_graph_runs)
-
     get_deviations_between_pipelines()
 
 
