@@ -48,3 +48,4 @@
 25903, 20220112.34, great_expectations, failed, completed,      - N/A (checkout error)
 26087, 20220113.36, great_expectations, failed, completed,      - N/A (usage stats)
 26511, 20220115.11, great_expectations, failed, completed,      - N/A (usage stats)
+26635, 20220118.19, great_expectations, failed, completed       - N/A (both pipelines passed)
