@@ -50,4 +50,5 @@
 26511, 20220115.11, great_expectations, failed, completed,        N/A (usage stats)
 26635, 20220118.19, great_expectations, failed, completed,        N/A (both pipelines passed)
 26725, 20220119.5, great_expectations, failed, completed,         N/A (usage stats)
-26841, 20220119.35, great_expectations, failed, completed         DEVIATION (was a simple .md change by Josh but one of the tests relied on the state of .md files) - See PR 4021 (6997a981)
+26841, 20220119.35, great_expectations, failed, completed,        DEVIATION (was a simple .md change by Josh but one of the tests relied on the state of .md files) - See PR 4021 (6997a981)
+27126, 20220121.23, great_expectations, succeeded, completed,     N/A (random CLI error that went away during retry)
