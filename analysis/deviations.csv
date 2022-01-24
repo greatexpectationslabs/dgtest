@@ -52,3 +52,6 @@
 26725, 20220119.5, great_expectations, failed, completed,         N/A (usage stats)
 26841, 20220119.35, great_expectations, failed, completed,        DEVIATION (was a simple .md change by Josh but one of the tests relied on the state of .md files) - See PR 4021 (6997a981)
 27126, 20220121.23, great_expectations, succeeded, completed,     N/A (random CLI error that went away during retry)
+27289, 20220124.21, great_expectations, succeeded, completed,     N/A (misalignment of PRs)
+27302, 20220124.26, great_expectations, succeeded, completed,     N/A (misalignment of PRs)
+27297, 20220124.23, great_expectations, failed, completed,        N/A (misalignment of PRs)
