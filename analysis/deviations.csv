@@ -57,3 +57,5 @@
 27297, 20220124.23, great_expectations, failed, completed,        N/A (misalignment of PRs)
 27403, 20220125.14, great_expectations, failed, completed,        N/A (usage stats)
 27583, 20220125.59, great_expectations, failed, completed,        N/A (usage stats)
+27661, 20220126.10, great_expectations, failed, completed,        N/A (usage stats)
+27623, 20220126.1, great_expectations, failed, completed,         DEVIATION (validator test did not run in dgtest) - See PR 4063 (d4b8b36b)
