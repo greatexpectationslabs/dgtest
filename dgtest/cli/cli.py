@@ -184,5 +184,9 @@ def run_command(
     sys.exit(code)
 
 
-if __name__ == "__main__":
+def main() -> None:
     cli()
+
+
+if __name__ == "__main__":
+    main()
