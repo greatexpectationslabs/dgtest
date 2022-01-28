@@ -76,7 +76,6 @@ def great_expectations(tmpdir_factory: Any) -> Tuple[str, str]:
         destination,
         single_branch=True,
         branch="main",
-        depth=1,
     )
 
     # Pinning to a particular release to be consistent between runs
