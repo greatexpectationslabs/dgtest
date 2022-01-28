@@ -61,3 +61,4 @@
 27623, 20220126.1, great_expectations, failed, completed,         DEVIATION (validator test did not run in dgtest) - See PR 4063 (d4b8b36b)
 27811, 20220126.48, great_expectations, failed, completed,        N/A (unrelated pandas issue)
 28029, 20220127.31, great_expectations, failed, completed,        N/A (usage stats)
+28134, 20220128.6, great_expectations, failed, completed,         N/A (usage stats)
