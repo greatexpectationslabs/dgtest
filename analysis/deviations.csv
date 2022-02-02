@@ -71,3 +71,6 @@
 28578, 20220131.1, great_expectations, failed, completed,         N/A (pip topological sort issue)
 28701, 20220131.32, great_expectations, failed, completed,        N/A (usage stats)
 28946, 20220201.34, great_expectations, failed, completed,        N/A (usage stats)
+28986, 20220202.2,  great_expectations, failed, completed,        N/A (3.6 failure due to dataclasses)
+28994, 20220202.4, great_expectations, failed, completed,         N/A (3.6 failure due to dataclasses)
+29054, 20220202.21, great_expectations, failed, completed,        N/A (3.6 failure due to dataclasses)
