@@ -33,12 +33,7 @@ Note that `dgtest` only works with codebases that use `pytest` as a testing fram
 
 To get started, install the CLI tool using:
 ```bash
-# Get latest version from PyPi
-pip install dgtest
-
-# Get latest development version
-git clone git@github.com:superconductive/dgtest.git
-pip install -e .
+pip install git+https://github.com/superconductive/dgtest
 ```
 
 `dgtest` uses the following dependencies under the hood:
