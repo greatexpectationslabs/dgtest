@@ -33,7 +33,12 @@ Note that `dgtest` only works with codebases that use `pytest` as a testing fram
 
 To get started, install the CLI tool using:
 ```bash
-pip install git+https://github.com/superconductive/dgtest
+# Option 1: Local install
+git clone git@github.com:superconductive/dgtest.git
+pip install -e .
+
+# Option 2: Git install
+pip install -e git+https://github.com/superconductive/dgtest/#egg=dgtest
 ```
 
 `dgtest` uses the following dependencies under the hood:
