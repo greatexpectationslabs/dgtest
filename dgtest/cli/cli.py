@@ -153,7 +153,7 @@ def list_command(
     filter_: Optional[str],
     branch: Optional[str],
 ) -> None:
-    """ See 'list_dgtest_results' for more detail """
+    """See 'list_dgtest_results' for more detail"""
     list_dgtest_results(source, tests, depth, list(ignore_paths), filter_, branch)
 
 
@@ -177,7 +177,7 @@ def run_command(
     branch: Optional[str],
     pytest_opts: Tuple[str],
 ) -> None:
-    """ See 'run_dgtest_results' for more detail """
+    """See 'run_dgtest_results' for more detail"""
     code = run_dgtest_results(
         source, tests, depth, list(ignore_paths), filter_, branch, list(pytest_opts)
     )
